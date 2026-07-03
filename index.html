@@ -716,11 +716,16 @@ async function doLogin(){
     const nomeGuess = email.split('@')[0].split('.').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
     const novoAdmin = { email, nome: nomeGuess, perfil:'ADMINISTRADOR', dataCadastro:'2026-07-03', status:'Ativo' };
     DB.usuarios.push(novoAdmin);
-    syncToSheets('usuarios', novoAdmin);
+    const syncResult = await syncToSheets('usuarios', novoAdmin);
+    if(!syncResult.ok){
+      console.warn('Não foi possível gravar o Administrador inicial na planilha:', syncResult);
+    }
     SESSION.role = 'ADMINISTRADOR';
     SESSION.email = novoAdmin.email;
     SESSION.nome = novoAdmin.nome;
-    toast('Primeiro acesso — você foi cadastrado como Administrador.', 'success');
+    toast(syncResult.ok
+      ? 'Primeiro acesso — você foi cadastrado como Administrador e salvo na planilha.'
+      : 'Primeiro acesso — você foi cadastrado como Administrador apenas nesta sessão (falha ao gravar na planilha, verifique o Apps Script).', syncResult.ok?'success':'error');
   } else {
     errEl.textContent = 'E-mail não cadastrado. Peça a um Administrador para cadastrar seu acesso em Usuários.';
     errEl.style.display = 'block';
@@ -1162,8 +1167,14 @@ async function saveNewLup(){
   renderBiblioteca();
   // Sincroniza metadados (sem o base64 bruto — só o link do Drive) com a planilha.
   const { arquivoDataUrl, ...syncRecord } = novaLup;
-  syncToSheets('lups', syncRecord);
-  toast(newLupFileData ? 'LUP cadastrada com o arquivo enviado' : 'LUP cadastrada com sucesso', 'success');
+  const syncResult = await syncToSheets('lups', syncRecord);
+  if(syncResult.ok){
+    toast(newLupFileData ? 'LUP cadastrada com o arquivo enviado e salva na planilha' : 'LUP cadastrada e salva na planilha', 'success');
+  } else if(syncResult.reason==='no-url'){
+    toast('LUP cadastrada apenas nesta sessão — nenhuma planilha conectada', 'error');
+  } else {
+    toast('LUP cadastrada nesta sessão, mas não foi possível salvar na planilha agora', 'error');
+  }
   newLupFileData = null;
 }
 </script>
@@ -1576,17 +1587,24 @@ function commitTreinamento(){
     timestamp:new Date().toISOString()
   };
   DB.treinamentos.push(rec);
+  const participanteRecords = [];
   TREINO.participantes.forEach((c,i)=>{
     const res = TREINO.quizResults[c.matricula] || {nota:0, status:'—'};
-    DB.participantes.push({
+    const pRec = {
       idParticipacao:`${id}-P${i+1}`, idTreinamento:id, matricula:c.matricula, nome:c.nome, funcao:c.cargo,
       equipe:c.equipe, resultadoQuiz:res.status, nota:res.nota, assinatura:!!TREINO.assinaturas[c.matricula],
       data:TREINO.data, timestamp:new Date().toISOString()
-    });
+    };
+    DB.participantes.push(pRec);
+    participanteRecords.push(pRec);
   });
   TREINO._saved = true;
-  syncToSheets('treinamentos', rec);
-  toast('Ata gerada e treinamento registrado na planilha', 'success');
+  syncToSheets('treinamentos', rec).then(result=>{
+    if(result.ok) toast('Treinamento salvo na planilha', 'success');
+    else if(result.reason!=='no-url') toast('Ata gerada, mas não foi possível salvar o treinamento na planilha agora', 'error');
+  });
+  participanteRecords.forEach(pRec => syncToSheets('participantes', pRec));
+  toast('Ata gerada com sucesso', 'success');
 }
 function ataHTML(t, l, id){
   const qrDivId = 'qr-'+id;
@@ -1945,19 +1963,40 @@ function openCadastrarUsuario(){
     });
   });
 }
-function saveUsuario(){
+async function saveUsuario(){
   const nome = document.getElementById('novoUsuarioNome').value.trim();
   const email = document.getElementById('novoUsuarioEmail').value.trim();
   const roleBtn = document.querySelector('#novoUsuarioRoleGrid .role-opt.active');
   const perfil = roleBtn ? roleBtn.dataset.role : 'PS';
   if(!nome || !email){ toast('Informe nome completo e e-mail corporativo', 'error'); return; }
   if(DB.usuarios.find(u=>u.email.toLowerCase()===email.toLowerCase())){ toast('Já existe um usuário cadastrado com este e-mail', 'error'); return; }
+
+  const btn = document.querySelector('.modal-foot .btn-orange');
+  if(btn){ btn.style.opacity=.6; btn.style.pointerEvents='none'; btn.textContent='Cadastrando…'; }
+
   const novoUsuario = { email, nome, perfil, dataCadastro:'2026-07-03', status:'Ativo' };
+  const result = await syncToSheets('usuarios', novoUsuario);
+
+  if(!result.ok){
+    if(result.reason==='no-url'){
+      DB.usuarios.push(novoUsuario);
+      closeModal(); renderUsuarios();
+      toast(`${nome} cadastrado(a) apenas nesta sessão — nenhuma planilha conectada (GOOGLE_SCRIPT_URL vazio no código)`, 'error');
+    } else if(result.reason==='backend-error'){
+      closeModal();
+      toast(`A planilha recusou o cadastro: ${result.error}. Verifique se o Apps Script foi atualizado com o Code.gs mais recente (aba USUARIOS).`, 'error');
+    } else {
+      DB.usuarios.push(novoUsuario);
+      closeModal(); renderUsuarios();
+      toast(`${nome} cadastrado(a) apenas nesta sessão — não foi possível conectar à planilha agora. Ele(a) some ao atualizar a página até sincronizar.`, 'error');
+    }
+    return;
+  }
+
   DB.usuarios.push(novoUsuario);
-  syncToSheets('usuarios', novoUsuario); // o backend cadastra e envia o e-mail de boas-vindas
   closeModal();
   renderUsuarios();
-  toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} — e-mail de boas-vindas enviado`, 'success');
+  toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} e salvo na planilha — e-mail de boas-vindas enviado`, 'success');
 }
 function removeUsuario(email){
   DB.usuarios = DB.usuarios.filter(u=>u.email.toLowerCase()!==email.toLowerCase());
@@ -1975,13 +2014,24 @@ function removeUsuario(email){
    arquivo — todo usuário que abrir esta página já sincroniza com a
    mesma planilha, sem nenhuma configuração manual.
 ====================================================================== */
-function syncToSheets(sheet, record){
-  if(!CONFIG.scriptUrl){ return; } // sem URL definida: mantém apenas em memória
-  fetch(CONFIG.scriptUrl, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain'},
-    body: JSON.stringify({action:'append', sheet, record})
-  }).catch(()=> console.warn('Falha ao sincronizar com Google Sheets — dado mantido localmente.'));
+async function syncToSheets(sheet, record){
+  if(!CONFIG.scriptUrl) return { ok:false, reason:'no-url' }; // sem URL definida: mantém apenas em memória
+  try{
+    const res = await fetch(CONFIG.scriptUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'append', sheet, record})
+    });
+    const data = await res.json();
+    if(data && data.error){
+      console.warn('Google Sheets recusou o registro:', data.error);
+      return { ok:false, reason:'backend-error', error:data.error };
+    }
+    return { ok:true, data };
+  }catch(err){
+    console.warn('Falha ao sincronizar com Google Sheets — dado mantido localmente.', err);
+    return { ok:false, reason:'network', error:String(err) };
+  }
 }
 
 async function fetchSheet(action){
