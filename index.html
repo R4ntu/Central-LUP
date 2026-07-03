@@ -142,7 +142,7 @@ td.mono{font-size:12px;letter-spacing:-0.01em;}
 
 .login-form{padding:52px 44px;display:flex;flex-direction:column;justify-content:center;gap:22px;}
 .login-form h2{font-size:22px;font-weight:700;}
-.login-form p.sub{color:var(--slate);font-size:13.5px;margin-top:-14px;}
+.login-form p.sub{color:var(--slate);font-size:13.5px;margin-top:6px;line-height:1.5;}
 .field-label{font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block;}
 .field-input{
   width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;
@@ -956,9 +956,39 @@ function renderBiblioteca(){
 }
 function setLupFilter(a){ lupFilterArea=a; renderBiblioteca(); }
 
+function lupHasUpload(l){ return !!(l.arquivoDataUrl || l.linkArquivo); }
+function lupIsPdf(l){
+  if(l.arquivoTipo) return l.arquivoTipo === 'application/pdf';
+  if(l.linkArquivo) return /\.pdf(\?|$)/i.test(l.linkArquivo);
+  if(l.arquivoNome) return /\.pdf$/i.test(l.arquivoNome);
+  return false;
+}
+/* Renderiza o arquivo exatamente como foi enviado no upload — sem
+   reformatar ou reinterpretar o conteúdo. Só cai no template gerado
+   (lupFullRender) quando a LUP não tem nenhum arquivo associado. */
+function lupRenderContent(l){
+  const src = l.arquivoDataUrl || l.linkArquivo;
+  if(!src) return lupFullRender(l);
+  if(lupIsPdf(l)){
+    return `<iframe src="${src}" style="width:100%;height:72vh;border:1px solid var(--line);border-radius:12px;background:#fff;display:block;" title="${escapeHtml(l.nome)}"></iframe>`;
+  }
+  return `<img src="${src}" alt="${escapeHtml(l.nome)}" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;">`;
+}
+
 function lupThumbSVG(l){
   const colorMap = {'Picking':'#EE4D2D','Putaway':'#232429','Segurança':'#D6392E'};
   const c = colorMap[l.area] || '#EE4D2D';
+  const src = l.arquivoDataUrl || l.linkArquivo;
+  if(src && !lupIsPdf(l)){
+    return `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`;
+  }
+  if(src && lupIsPdf(l)){
+    return `<div class="thumb-render" style="background:linear-gradient(160deg, ${c}12, #fff 55%);padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" style="width:34px;height:34px;"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/></svg>
+      <div style="font-family:var(--font-mono);font-size:9.5px;color:${c};font-weight:700;">${l.codigo}</div>
+      <div style="font-size:11px;color:var(--slate);line-height:1.3;word-break:break-word;">${l.arquivoNome||'arquivo.pdf'}</div>
+    </div>`;
+  }
   return `<div class="thumb-render" style="background:linear-gradient(160deg, ${c}12, #fff 55%);padding:14px;display:flex;flex-direction:column;">
     <div style="font-family:var(--font-mono);font-size:9px;color:${c};font-weight:700;">${l.codigo}</div>
     <div style="font-family:var(--font-display);font-weight:800;font-size:13px;margin-top:6px;line-height:1.25;">${l.nome.split('—')[0]}</div>
@@ -1023,7 +1053,7 @@ function viewLup(codigo){
   const l = DB.lups.find(x=>x.codigo===codigo);
   openModal(`
     <div class="modal-head"><h3>${l.nome}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
-    <div class="modal-body">${lupFullRender(l)}
+    <div class="modal-body">${lupRenderContent(l)}
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);">
         <span>Área: <b>${l.area}</b></span>·<span>Criada em ${fmtDate(l.dataCriacao)}</span>·<span>Última revisão ${fmtDate(l.ultimaRevisao)}</span>
       </div>
@@ -1039,7 +1069,13 @@ function viewLup(codigo){
 }
 function printLup(codigo){
   const l = DB.lups.find(x=>x.codigo===codigo);
-  document.getElementById('printArea').innerHTML = lupFullRender(l);
+  const src = l.arquivoDataUrl || l.linkArquivo;
+  if(src && lupIsPdf(l)){
+    // PDF original: abre numa aba nova e deixa o visualizador nativo do navegador cuidar de imprimir/baixar fielmente.
+    window.open(src, '_blank');
+    return;
+  }
+  document.getElementById('printArea').innerHTML = lupRenderContent(l);
   window.print();
 }
 function openUploadLup(){
@@ -1055,29 +1091,80 @@ function openUploadLup(){
         <div><label class="field-label">Versão</label><input class="field-input" id="newLupVersao" value="v1"></div>
       </div>
       <label class="field-label">Arquivo (PDF, PNG ou JPG)</label>
-      <input type="file" class="field-input" accept=".pdf,.png,.jpg,.jpeg">
-      <p style="font-size:11.5px;color:var(--mist);margin-top:10px;">O arquivo é salvo automaticamente no Google Drive e o link é gravado na aba LUPS da planilha.</p>
+      <input type="file" class="field-input" id="newLupFile" accept=".pdf,.png,.jpg,.jpeg" onchange="previewNewLupFile()">
+      <div id="newLupFilePreview" style="margin-top:12px;"></div>
+      <p style="font-size:11.5px;color:var(--mist);margin-top:10px;">A LUP é exibida exatamente como o arquivo enviado — nada é reformatado. O arquivo é salvo no Google Drive e o link é gravado na aba LUPS da planilha.</p>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-orange" onclick="saveNewLup()">Salvar LUP</button>
+      <button class="btn btn-orange" id="saveNewLupBtn" onclick="saveNewLup()">Salvar LUP</button>
     </div>
   `);
 }
-function saveNewLup(){
+let newLupFileData = null; // { dataUrl, mimeType, filename }
+function previewNewLupFile(){
+  const input = document.getElementById('newLupFile');
+  const preview = document.getElementById('newLupFilePreview');
+  const file = input.files[0];
+  newLupFileData = null;
+  if(!file){ preview.innerHTML=''; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    newLupFileData = { dataUrl: reader.result, mimeType: file.type, filename: file.name };
+    if(file.type === 'application/pdf'){
+      preview.innerHTML = `<iframe src="${reader.result}" style="width:100%;height:260px;border:1px solid var(--line);border-radius:10px;"></iframe>`;
+    } else {
+      preview.innerHTML = `<img src="${reader.result}" style="max-height:220px;border-radius:10px;border:1px solid var(--line);">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+async function saveNewLup(){
+  if(!newLupFileData){ toast('Anexe o arquivo da LUP (PDF, PNG ou JPG) antes de salvar', 'error'); return; }
   const codigo = document.getElementById('newLupCodigo').value.trim() || 'LUP-'+Math.random().toString(36).slice(2,6).toUpperCase();
   const nome = document.getElementById('newLupNome').value.trim() || 'Nova LUP';
   const area = document.getElementById('newLupArea').value;
-  DB.lups.push({codigo, nome, area, processo:area, subprocesso:'—', categoria:'Operacional',
+  const btn = document.getElementById('saveNewLupBtn');
+  btn.style.opacity=.6; btn.style.pointerEvents='none'; btn.textContent='Salvando…';
+
+  const novaLup = {codigo, nome, area, processo:area, subprocesso:'—', categoria:'Operacional',
     versao:document.getElementById('newLupVersao').value||'v1', status:'Vigente',
     dataCriacao:'2026-07-03', ultimaRevisao:'2026-07-03',
-    objetivo:'Definir objetivo desta LUP.', risco:'Descrever risco associado.', pontoChave:'Definir ponto-chave.',
-    correto:['Adicionar prática correta'], evitar:['Adicionar prática a evitar'], motivador:'Frase motivadora.',
-    passos:['Passo 1'], quiz:[{q:'Pergunta de exemplo', opts:['A','B','C'], correta:0}]});
+    objetivo:'', risco:'', pontoChave:'', correto:[], evitar:[], motivador:'', passos:[],
+    quiz:[{q:'Você revisou e compreendeu o conteúdo apresentado nesta LUP?', opts:['Sim, revisei e compreendi','Não revisei ainda'], correta:0}],
+    arquivoDataUrl:'', linkArquivo:'', arquivoTipo:'', arquivoNome:''
+  };
+
+  if(newLupFileData){
+    // Mantém o arquivo fiel na sessão atual imediatamente.
+    novaLup.arquivoDataUrl = newLupFileData.dataUrl;
+    novaLup.arquivoTipo = newLupFileData.mimeType;
+    novaLup.arquivoNome = newLupFileData.filename;
+
+    // Envia para o Google Drive via Apps Script, se configurado, para persistir entre sessões/usuários.
+    if(CONFIG.scriptUrl){
+      try{
+        const base64 = newLupFileData.dataUrl.split(',')[1];
+        const res = await fetch(CONFIG.scriptUrl, {
+          method:'POST', headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify({action:'uploadFile', base64, mimeType:newLupFileData.mimeType, filename:newLupFileData.filename})
+        });
+        const data = await res.json();
+        if(data && data.url) novaLup.linkArquivo = data.url;
+      }catch(err){
+        console.warn('Falha ao enviar arquivo ao Google Drive — mantido apenas nesta sessão.', err);
+      }
+    }
+  }
+
+  DB.lups.push(novaLup);
   closeModal();
   renderBiblioteca();
-  syncToSheets('lups', DB.lups[DB.lups.length-1]);
-  toast('LUP cadastrada com sucesso', 'success');
+  // Sincroniza metadados (sem o base64 bruto — só o link do Drive) com a planilha.
+  const { arquivoDataUrl, ...syncRecord } = novaLup;
+  syncToSheets('lups', syncRecord);
+  toast(newLupFileData ? 'LUP cadastrada com o arquivo enviado' : 'LUP cadastrada com sucesso', 'success');
+  newLupFileData = null;
 }
 </script>
 <script>
@@ -1271,7 +1358,7 @@ function stepPresentation(){
   const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
   return `<div class="card">
     <div class="card-head"><h3>Passo 4 · Modo apresentação</h3><span class="muted">Abra em tela cheia para conduzir o treinamento</span></div>
-    <div style="max-width:600px;margin:0 auto;">${lupFullRender(l)}</div>
+    <div style="max-width:600px;margin:0 auto;">${lupRenderContent(l)}</div>
     <div style="display:flex;justify-content:center;margin-top:20px;">
       <button class="btn btn-dark" style="padding:14px 26px;" onclick="openFullscreenPresentation()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
@@ -1295,7 +1382,7 @@ function openFullscreenPresentation(){
         <button class="modal-close" onclick="closePresentation()">✕</button>
       </div>
     </div>
-    <div class="modal-body">${lupFullRender(l)}</div>
+    <div class="modal-body">${lupRenderContent(l)}</div>
     <div class="modal-foot">
       <button class="btn btn-orange" onclick="closePresentation(true)">Encerrar apresentação</button>
     </div>
