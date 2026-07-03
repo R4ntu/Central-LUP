@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central LUP — Gestão Inteligente de Treinamentos Operacionais</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --orange:#EE4D2D;
+  --orange-dark:#C93E20;
+  --orange-light:#FFF1EC;
+  --ink:#17181C;
+  --charcoal:#232429;
+  --slate:#5B5E68;
+  --mist:#9A9DA8;
+  --line:#E7E6E9;
+  --paper:#FBFAF8;
+  --card:#FFFFFF;
+  --green:#1E9E5A;
+  --green-bg:#E8F8EF;
+  --amber:#D98A11;
+  --amber-bg:#FCF2DE;
+  --red:#D6392E;
+  --red-bg:#FCEAE8;
+  --navy:#101114;
+  --radius:14px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(16,17,20,.06), 0 1px 1px rgba(16,17,20,.04);
+  --shadow-md:0 8px 24px rgba(16,17,20,.10);
+  --shadow-lg:0 20px 48px rgba(16,17,20,.16);
+  --font-display:'Sora',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:var(--font-body);
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--orange);color:#fff;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--mist);}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+input,select,textarea{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,h4{font-family:var(--font-display);letter-spacing:-0.01em;}
+.mono{font-family:var(--font-mono);}
+td.mono{font-size:12px;letter-spacing:-0.01em;}
+.hidden{display:none !important;}
+
+/* ============ LOGIN ============ */
+#loginScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(238,77,45,.10), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(238,77,45,.08), transparent 40%),
+    var(--navy);
+  position:relative;
+  padding:24px;
+}
+#loginScreen::before{
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(circle at 50% 40%, black, transparent 70%);
+}
+.login-card{
+  position:relative;
+  width:100%;
+  max-width:960px;
+  background:var(--card);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:var(--shadow-lg);
+  display:grid;
+  grid-template-columns:1.05fr 1fr;
+  min-height:560px;
+}
+.login-brand{
+  background:linear-gradient(155deg, var(--ink) 0%, #050506 100%);
+  color:#fff;
+  padding:52px 44px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+.login-brand::after{
+  content:'';
+  position:absolute;
+  width:340px;height:340px;
+  border-radius:50%;
+  border:1px solid rgba(238,77,45,.35);
+  right:-140px; bottom:-140px;
+}
+.login-brand::before{
+  content:'';
+  position:absolute;
+  width:220px;height:220px;
+  border-radius:50%;
+  border:1px solid rgba(238,77,45,.2);
+  right:-70px; bottom:-70px;
+}
+.brand-mark{display:flex;align-items:center;gap:10px;}
+.brand-seal{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--orange);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:800;color:#fff;font-size:16px;
+  box-shadow:0 6px 16px rgba(238,77,45,.4);
+}
+.brand-name{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:.01em;}
+.brand-name span{color:var(--orange);}
+.login-brand h1{
+  font-size:38px;font-weight:700;line-height:1.12;margin-top:40px;
+  max-width:380px;
+}
+.login-brand h1 em{font-style:normal;color:var(--orange);}
+.login-tagline{
+  color:rgba(255,255,255,.55);
+  font-size:14.5px;margin-top:16px;max-width:340px;line-height:1.6;
+}
+.login-stats{display:flex;gap:28px;position:relative;z-index:1;}
+.login-stat b{display:block;font-family:var(--font-mono);font-size:22px;color:var(--orange);}
+.login-stat span{font-size:11.5px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;}
+
+.login-form{padding:52px 44px;display:flex;flex-direction:column;justify-content:center;gap:22px;}
+.login-form h2{font-size:22px;font-weight:700;}
+.login-form p.sub{color:var(--slate);font-size:13.5px;margin-top:-14px;}
+.field-label{font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block;}
+.field-input{
+  width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;
+  font-size:14.5px;transition:border-color .15s, box-shadow .15s;background:var(--paper);
+}
+.field-input:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 4px var(--orange-light);}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.role-opt{
+  border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;
+  display:flex;flex-direction:column;gap:2px;transition:all .15s;text-align:left;
+}
+.role-opt:hover{border-color:var(--mist);}
+.role-opt.active{border-color:var(--orange);background:var(--orange-light);}
+.role-opt b{font-size:13.5px;}
+.role-opt span{font-size:11px;color:var(--slate);}
+.btn-primary{
+  background:var(--orange);color:#fff;padding:14px;border-radius:10px;
+  font-weight:600;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s, transform .1s;box-shadow:0 8px 20px rgba(238,77,45,.28);
+}
+.btn-primary:hover{background:var(--orange-dark);}
+.btn-primary:active{transform:scale(.98);}
+.demo-note{font-size:11.5px;color:var(--mist);text-align:center;}
+
+/* ============ APP SHELL ============ */
+#app{display:none;min-height:100vh;grid-template-columns:250px 1fr;}
+#app.show{display:grid;}
+.sidebar{
+  background:var(--navy);color:#fff;
+  padding:22px 16px;display:flex;flex-direction:column;gap:4px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.side-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 22px;}
+.side-nav-group{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);padding:16px 12px 6px;font-weight:600;}
+.side-link{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;
+  font-size:13.5px;color:rgba(255,255,255,.68);font-weight:500;transition:all .15s;
+}
+.side-link:hover{background:rgba(255,255,255,.06);color:#fff;}
+.side-link.active{background:var(--orange);color:#fff;}
+.side-link svg{width:17px;height:17px;flex-shrink:0;opacity:.9;}
+.side-foot{margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);}
+.side-user{display:flex;align-items:center;gap:10px;padding:8px 10px;}
+.side-avatar{width:34px;height:34px;border-radius:9px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+.side-user-name{font-size:12.5px;font-weight:600;}
+.side-user-role{font-size:10.5px;color:rgba(255,255,255,.45);}
+.side-logout{font-size:11.5px;color:rgba(255,255,255,.45);padding:8px 10px;display:block;margin-top:2px;}
+.side-logout:hover{color:var(--orange);}
+
+.main{padding:28px 34px 60px;max-width:1440px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+.topbar h1{font-size:24px;font-weight:700;}
+.topbar .sub{color:var(--slate);font-size:13px;margin-top:3px;}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);padding:7px 13px;border-radius:100px;font-size:12.5px;font-weight:500;color:var(--slate);}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+.view{display:none;animation:fadeUp .35s ease both;}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ============ CARDS / KPI ============ */
+.grid{display:grid;gap:16px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:860px){
+  #app.show{display:flex;flex-direction:column;}
+  .sidebar{position:sticky;top:0;height:auto;width:100%;flex-direction:row;overflow-x:auto;padding:12px;align-items:center;gap:8px;z-index:100;}
+  .side-nav-group{display:none;}
+  .side-brand{padding:4px 10px 4px 4px;flex-shrink:0;}
+  .side-link{flex-shrink:0;white-space:nowrap;padding:8px 12px;}
+  .side-foot{display:none;}
+  .main{padding:18px 16px 40px;}
+  .grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}
+  .login-card{grid-template-columns:1fr;}
+  .login-brand{padding:32px 26px;}
+  .login-brand h1{font-size:28px;margin-top:24px;}
+  .login-form{padding:32px 26px;}
+  .topbar{align-items:flex-start;}
+  table{font-size:12px;}
+  .progress-steps{flex-wrap:wrap;gap:10px;}
+  .pstep{flex:none;width:calc(50% - 5px);}
+  .pstep .pline{display:none;}
+}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);}
+.kpi-card{position:relative;overflow:hidden;}
+.kpi-icon{width:36px;height:36px;border-radius:9px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.kpi-icon svg{width:18px;height:18px;color:var(--orange);}
+.kpi-val{font-family:var(--font-display);font-size:28px;font-weight:800;line-height:1;}
+.kpi-label{font-size:12.5px;color:var(--slate);margin-top:6px;}
+.kpi-trend{font-size:11.5px;margin-top:10px;display:inline-flex;align-items:center;gap:4px;font-weight:600;}
+.kpi-trend.up{color:var(--green);}
+.kpi-trend.down{color:var(--red);}
+
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-head h3{font-size:14.5px;font-weight:700;}
+.card-head .muted{font-size:11.5px;color:var(--mist);}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;}
+.badge.green{background:var(--green-bg);color:var(--green);}
+.badge.amber{background:var(--amber-bg);color:var(--amber);}
+.badge.red{background:var(--red-bg);color:var(--red);}
+.badge.gray{background:var(--line);color:var(--slate);}
+
+.btn{padding:10px 16px;border-radius:9px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:all .15s;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-orange:hover{background:var(--orange-dark);}
+.btn-ghost{background:var(--card);border:1.5px solid var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:var(--mist);}
+.btn-dark{background:var(--ink);color:#fff;}
+.btn-sm{padding:7px 12px;font-size:12px;}
+.btn svg{width:15px;height:15px;}
+
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mist);font-weight:600;padding:10px 12px;border-bottom:1.5px solid var(--line);}
+td{padding:12px;font-size:13.5px;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--orange-light);}
+
+.empty-state{text-align:center;padding:50px 20px;color:var(--mist);}
+.empty-state svg{width:44px;height:44px;margin-bottom:12px;opacity:.4;}
+.empty-state p{font-size:13.5px;}
+
+.overlay{position:fixed;inset:0;background:rgba(16,17,20,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:24px;}
+.overlay.show{display:flex;}
+.modal{background:var(--card);border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal.wide{max-width:920px;}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:2;}
+.modal-head h3{font-size:16px;font-weight:700;}
+.modal-close{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--slate);}
+.modal-close:hover{background:var(--orange-light);color:var(--orange);}
+.modal-body{padding:24px;}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--card);}
+
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:10px;}
+.toast{background:var(--ink);color:#fff;padding:13px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;animation:toastIn .25s ease;}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.progress-steps{display:flex;align-items:center;margin-bottom:28px;}
+.pstep{display:flex;align-items:center;gap:10px;flex:1;}
+.pstep .circ{width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--slate);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;transition:all .2s;}
+.pstep.active .circ{background:var(--orange);color:#fff;}
+.pstep.done .circ{background:var(--green);color:#fff;}
+.pstep .plabel{font-size:12.5px;font-weight:600;color:var(--slate);}
+.pstep.active .plabel{color:var(--ink);}
+.pstep .pline{flex:1;height:2px;background:var(--line);margin:0 6px;}
+.pstep.done .pline{background:var(--green);}
+
+.chip{display:inline-flex;align-items:center;padding:6px 13px;border-radius:100px;border:1.5px solid var(--line);font-size:12.5px;font-weight:500;transition:all .15s;}
+.chip:hover{border-color:var(--mist);}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.lup-thumb{aspect-ratio:3/4;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--line);}
+.lup-thumb img,.lup-thumb .thumb-render{width:100%;height:100%;object-fit:cover;}
+
+.sigpad-wrap{border:1.5px dashed var(--line);border-radius:12px;background:#fcfcfb;position:relative;}
+.sigpad-wrap canvas{width:100%;height:160px;display:block;touch-action:none;cursor:crosshair;}
+.sigpad-line{position:absolute;bottom:34px;left:20px;right:20px;border-bottom:1.5px solid var(--mist);}
+
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{position:absolute;top:0;left:0;width:100%;}
+  .no-print{display:none !important;}
+}
+#printArea{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div>
+        <div class="brand-mark">
+          <div class="brand-seal">CL</div>
+          <div class="brand-name">CENTRAL <span>LUP</span></div>
+        </div>
+        <h1>O ponto <em>central</em> do conhecimento operacional.</h1>
+        <p class="login-tagline">Gestão, aplicação e rastreabilidade de Lições de Um Ponto para operações de Fulfillment — sem planilha dispersa, sem lista de presença perdida.</p>
+      </div>
+      <div class="login-stats">
+        <div class="login-stat"><b id="statLupsLogin">—</b><span>LUPs ativas</span></div>
+        <div class="login-stat"><b id="statColabLogin">—</b><span>Colaboradores</span></div>
+        <div class="login-stat"><b id="statTreinLogin">—</b><span>Treinamentos</span></div>
+      </div>
+    </div>
+    <div class="login-form">
+      <div>
+        <h2>Acessar plataforma</h2>
+        <p class="sub" id="loginSubtext">Informe seu e-mail corporativo cadastrado para continuar.</p>
+      </div>
+      <div>
+        <label class="field-label">E-mail corporativo</label>
+        <input class="field-input" id="loginEmail" placeholder="Ex: ruan.antunes@shopee.com" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <div id="loginError" style="display:none;font-size:12.5px;color:var(--red);background:var(--red-bg);padding:10px 12px;border-radius:8px;"></div>
+      <button class="btn-primary" onclick="doLogin()">
+        Entrar na plataforma
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <p class="demo-note" id="loginDemoNote">Sincronizando com a planilha…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="brand-seal" style="width:32px;height:32px;font-size:13px;">CL</div>
+      <div class="brand-name" style="font-size:15.5px;">CENTRAL <span>LUP</span></div>
+    </div>
+
+    <div class="side-nav-group">Visão Geral</div>
+    <a class="side-link active" data-view="dashboard" onclick="nav('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard Executivo
+    </a>
+
+    <div class="side-nav-group">Treinamento</div>
+    <a class="side-link" data-view="aplicar" onclick="nav('aplicar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Aplicar Treinamento
+    </a>
+    <a class="side-link" data-view="biblioteca" onclick="nav('biblioteca')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Biblioteca de LUPs
+    </a>
+
+    <div class="side-nav-group">Gestão</div>
+    <a class="side-link" data-view="colaborador" onclick="nav('colaborador')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+      Perfil do Colaborador
+    </a>
+    <a class="side-link" data-view="matriz" onclick="nav('matriz')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+      Matriz de Treinamento
+    </a>
+    <a class="side-link" data-view="auditoria" onclick="nav('auditoria')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 4v5c0 4.5-3 8-8 9-5-1-8-4.5-8-9V7l8-4z"/></svg>
+      Auditoria
+    </a>
+    <a class="side-link" data-view="relatorios" onclick="nav('relatorios')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/><path d="M9 13h6M9 17h6"/></svg>
+      Relatórios Gerenciais
+    </a>
+
+    <div class="side-nav-group">Administração</div>
+    <a class="side-link" data-view="usuarios" onclick="nav('usuarios')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M17 8h4M19 6v4"/></svg>
+      Usuários
+    </a>
+
+    <div class="side-foot">
+      <div class="side-user">
+        <div class="side-avatar" id="sideAvatar">RA</div>
+        <div>
+          <div class="side-user-name" id="sideUserName">Ruan Antunes</div>
+          <div class="side-user-role" id="sideUserRole">Administrador</div>
+        </div>
+      </div>
+      <a class="side-logout" onclick="doLogout()">← Sair da plataforma</a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div>
+          <h1>Dashboard Executivo</h1>
+          <div class="sub">BRFPE1 · Recife-PE · Visão consolidada de treinamentos operacionais</div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <span class="pill"><span class="dot"></span> Sincronizado com Google Sheets</span>
+          <button class="btn btn-orange" onclick="nav('aplicar')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Iniciar Treinamento
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-4" id="kpiRow" style="margin-bottom:16px;"></div>
+
+      <div class="grid grid-4" style="margin-bottom:16px;">
+        <div class="card" style="grid-column:span 2;">
+          <div class="card-head"><h3>LUP mais aplicada</h3><span class="muted">últimos 90 dias</span></div>
+          <div id="topLupCard"></div>
+        </div>
+        <div class="card" style="grid-column:span 2;">
+          <div class="card-head"><h3>Cobertura da matriz de treinamento</h3><span class="muted">todas as funções</span></div>
+          <div id="coverageBar"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-head"><h3>Treinamentos por área</h3><span class="muted">acumulado</span></div>
+          <canvas id="chartArea" height="230"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Evolução mensal de treinamentos</h3><span class="muted">2026</span></div>
+          <canvas id="chartEvolucao" height="230"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="card-head"><h3>Treinamentos por turno</h3><span class="muted">distribuição</span></div>
+          <canvas id="chartTurno" height="230"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Ranking de instrutores</h3><span class="muted">nº de treinamentos aplicados</span></div>
+          <canvas id="chartInstrutor" height="230"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Treinamentos recentes</h3><span class="muted" id="treinCount">—</span></div>
+        <div id="recentTreinTable"></div>
+      </div>
+    </section>
+
+    <!-- ============ APLICAR TREINAMENTO ============ -->
+    <section class="view" id="view-aplicar">
+      <div class="topbar">
+        <div>
+          <h1>Aplicar Treinamento</h1>
+          <div class="sub">Fluxo guiado de aplicação, quiz, assinatura e emissão de ata</div>
+        </div>
+        <button class="btn btn-ghost" onclick="restartTreino()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 16v-4h4"/></svg>
+          Reiniciar fluxo
+        </button>
+      </div>
+
+      <div class="progress-steps" id="progressSteps"></div>
+
+      <div id="stepContent"></div>
+    </section>
+
+    <!-- ============ BIBLIOTECA DE LUPS ============ -->
+    <section class="view" id="view-biblioteca">
+      <div class="topbar">
+        <div>
+          <h1>Biblioteca de LUPs</h1>
+          <div class="sub">Repositório central de Lições de Um Ponto vigentes</div>
+        </div>
+        <button class="btn btn-orange" onclick="openUploadLup()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+          Cadastrar nova LUP
+        </button>
+      </div>
+      <div class="card" style="margin-bottom:16px;padding:14px 18px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="lupFilterChips"></div>
+      </div>
+      <div class="grid grid-4" id="lupGrid"></div>
+    </section>
+
+    <!-- ============ PERFIL DO COLABORADOR ============ -->
+    <section class="view" id="view-colaborador">
+      <div class="topbar">
+        <div>
+          <h1>Perfil do Colaborador</h1>
+          <div class="sub">Histórico individual de treinamentos, notas e certificados</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <label class="field-label">Buscar por matrícula ou nome</label>
+        <input class="field-input" id="colabSearch" placeholder="Ex: 40021 ou Ana Beatriz" oninput="renderColabResults()">
+        <div id="colabResults" style="margin-top:10px;"></div>
+      </div>
+      <div id="colabProfile"></div>
+    </section>
+
+    <!-- ============ MATRIZ DE TREINAMENTO ============ -->
+    <section class="view" id="view-matriz">
+      <div class="topbar">
+        <div>
+          <h1>Matriz de Treinamento</h1>
+          <div class="sub">Treinamentos obrigatórios por função e status de conformidade</div>
+        </div>
+        <button class="btn btn-ghost" onclick="exportCSV('matriz')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+          Exportar CSV
+        </button>
+      </div>
+      <div id="matrizContent"></div>
+    </section>
+
+    <!-- ============ AUDITORIA ============ -->
+    <section class="view" id="view-auditoria">
+      <div class="topbar">
+        <div>
+          <h1>Auditoria</h1>
+          <div class="sub">Indicadores de conformidade e evidências para auditorias internas / externas</div>
+        </div>
+        <button class="btn btn-ghost" onclick="exportCSV('auditoria')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+          Exportar CSV
+        </button>
+      </div>
+      <div id="auditoriaContent"></div>
+    </section>
+
+    <!-- ============ RELATÓRIOS ============ -->
+    <section class="view" id="view-relatorios">
+      <div class="topbar">
+        <div>
+          <h1>Relatórios Gerenciais</h1>
+          <div class="sub">Filtre por período, área e instrutor para exportação</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="grid grid-4">
+          <div><label class="field-label">Data inicial</label><input type="date" class="field-input" id="relDataIni"></div>
+          <div><label class="field-label">Data final</label><input type="date" class="field-input" id="relDataFim"></div>
+          <div><label class="field-label">Área</label><select class="field-input" id="relArea"><option value="">Todas</option></select></div>
+          <div><label class="field-label">Instrutor</label><select class="field-input" id="relInstrutor"><option value="">Todos</option></select></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+          <button class="btn btn-orange" onclick="renderRelatorio()">Aplicar filtros</button>
+          <button class="btn btn-ghost" onclick="exportCSV('relatorio')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/></svg>
+            Exportar Excel (CSV)
+          </button>
+          <button class="btn btn-ghost" onclick="printRelatorio()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+            Exportar PDF
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-4" id="relKpis" style="margin-bottom:16px;"></div>
+      <div class="card"><div id="relTable"></div></div>
+    </section>
+
+    <!-- ============ USUÁRIOS ============ -->
+    <section class="view" id="view-usuarios">
+      <div class="topbar">
+        <div>
+          <h1>Usuários</h1>
+          <div class="sub">Cadastre quem pode acessar a Central LUP e qual perfil cada pessoa tem</div>
+        </div>
+        <button class="btn btn-orange" onclick="openCadastrarUsuario()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Cadastrar usuário
+        </button>
+      </div>
+      <div class="card">
+        <div id="usuariosTable"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- overlays / modals mounted here -->
+<div id="overlayRoot"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="printArea"></div>
+
+<script>
+/* ======================================================================
+   CENTRAL LUP — DATA MODEL
+   Estrutura espelha exatamente as 5 abas do Google Sheets especificadas.
+
+   >>> CONEXÃO COM GOOGLE SHEETS <<<
+   A URL do Web App do Apps Script já está embutida abaixo. Todos os
+   usuários que abrirem esta página ficam conectados à planilha real,
+   sem nenhuma configuração manual por navegador/usuário.
+====================================================================== */
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9LxC1O9ff3TC2OzFXk89mAGFi7f99xEoo9CuslqYn7Jfr4RvVowdg1bNdLVxuIGPiBQ/exec';
+
+const CONFIG = {
+  scriptUrl: GOOGLE_SCRIPT_URL || localStorage.getItem('centrallup_scripturl') || '',
+  demoMode: true
+};
+
+const AREAS = ['Picking','Putaway','Packing','Checking','Inventory','Segurança','Qualidade','Avarias'];
+const TURNOS = ['Turno 1 (06h-14h)','Turno 2 (14h-22h)','Turno 3 (22h-06h)'];
+
+const DB = {
+  /* Base zerada — sem dados de exemplo. Cadastre LUPs pela Biblioteca
+     de LUPs (Cadastrar nova LUP) ou sincronize direto da sua planilha
+     conectada em GOOGLE_SCRIPT_URL. */
+  colaboradores: [],
+  lups: [],
+  matriz: [],
+  treinamentos: [],
+  participantes: [],
+  usuarios: []
+};
+
+let SESSION = { email:'', nome:'', role:'' };
+let currentView = 'dashboard';
+let dataLoaded = false;
+</script>
+<script>
+/* ======================================================================
+   HELPERS: toast, modal, format
+====================================================================== */
+function toast(msg, type='info'){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type==='success'?'success':type==='error'?'error':'');
+  el.innerHTML = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function initials(name){
+  return name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function openModal(html, wide=false){
+  const root = document.getElementById('overlayRoot');
+  root.innerHTML = `<div class="overlay show" id="dynOverlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal ${wide?'wide':''}">${html}</div>
+  </div>`;
+}
+function closeModal(){
+  const root = document.getElementById('overlayRoot');
+  root.innerHTML = '';
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ======================================================================
+   LOGIN / NAV
+====================================================================== */
+const ROLE_LABELS = {ADMINISTRADOR:'Administrador', SUPERVISOR:'Supervisor', PS:'PS'};
+const ROLE_VIEWS = {
+  ADMINISTRADOR: ['dashboard','aplicar','biblioteca','colaborador','matriz','auditoria','relatorios','usuarios'],
+  SUPERVISOR:    ['dashboard','aplicar','biblioteca','colaborador','matriz','auditoria','relatorios'],
+  PS:            ['dashboard','aplicar','biblioteca','colaborador']
+};
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if(!email){ errEl.textContent = 'Informe seu e-mail corporativo.'; errEl.style.display='block'; return; }
+
+  if(!dataLoaded){
+    const btn = document.querySelector('.btn-primary');
+    if(btn){ btn.style.opacity=.6; btn.style.pointerEvents='none'; }
+    await loadPromise;
+    if(btn){ btn.style.opacity=1; btn.style.pointerEvents='auto'; }
+  }
+
+  const user = DB.usuarios.find(u=>u.email.toLowerCase()===email.toLowerCase());
+
+  if(user){
+    SESSION.role = user.perfil;
+    SESSION.email = user.email;
+    SESSION.nome = user.nome;
+  } else if(DB.usuarios.length === 0){
+    // Primeiro acesso: ninguém cadastrado ainda — esta pessoa vira Administrador automaticamente.
+    const nomeGuess = email.split('@')[0].split('.').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+    const novoAdmin = { email, nome: nomeGuess, perfil:'ADMINISTRADOR', dataCadastro:'2026-07-03', status:'Ativo' };
+    DB.usuarios.push(novoAdmin);
+    syncToSheets('usuarios', novoAdmin);
+    SESSION.role = 'ADMINISTRADOR';
+    SESSION.email = novoAdmin.email;
+    SESSION.nome = novoAdmin.nome;
+    toast('Primeiro acesso — você foi cadastrado como Administrador.', 'success');
+  } else {
+    errEl.textContent = 'E-mail não cadastrado. Peça a um Administrador para cadastrar seu acesso em Usuários.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const role = SESSION.role;
+  document.getElementById('sideAvatar').textContent = initials(SESSION.nome);
+  document.getElementById('sideUserName').textContent = SESSION.nome;
+  document.getElementById('sideUserRole').textContent = ROLE_LABELS[role];
+
+  document.querySelectorAll('.side-link').forEach(link=>{
+    const v = link.dataset.view;
+    link.style.display = ROLE_VIEWS[role].includes(v) ? 'flex' : 'none';
+  });
+
+  document.getElementById('loginScreen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.classList.add('show');
+  toast(`Bem-vindo(a), ${SESSION.nome.split(' ')[0]} · perfil ${ROLE_LABELS[role]}`, 'success');
+  nav('dashboard');
+  initSelects();
+}
+function doLogout(){
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function nav(view){
+  if(!ROLE_VIEWS[SESSION.role].includes(view)){ toast('Seu perfil não tem acesso a este módulo', 'error'); return; }
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.side-link').forEach(l=>l.classList.toggle('active', l.dataset.view===view));
+  const renderers = {
+    dashboard: renderDashboard,
+    aplicar: renderTreinoStep,
+    biblioteca: renderBiblioteca,
+    colaborador: renderColabResults,
+    matriz: renderMatriz,
+    auditoria: renderAuditoria,
+    relatorios: renderRelatorio,
+    usuarios: renderUsuarios
+  };
+  if(renderers[view]) renderers[view]();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ======================================================================
+   DASHBOARD
+====================================================================== */
+let chartRefs = {};
+function destroyChart(key){ if(chartRefs[key]){ chartRefs[key].destroy(); delete chartRefs[key]; } }
+
+function renderDashboard(){
+  const t = DB.treinamentos;
+  const p = DB.participantes;
+  const today = '2026-07-03';
+  const thisMonth = today.slice(0,7);
+
+  const trToday = t.filter(x=>x.data===today).length;
+  const trMonth = t.filter(x=>x.data.startsWith(thisMonth)).length;
+  const totalMin = t.reduce((s,x)=>s + parseInt(x.duracao),0);
+  const totalHoras = (totalMin/60).toFixed(1);
+  const totalParticipantes = p.length;
+
+  const lupCount = {};
+  t.forEach(x=> lupCount[x.nomeLup] = (lupCount[x.nomeLup]||0)+1);
+  const topLup = Object.entries(lupCount).sort((a,b)=>b[1]-a[1])[0] || ['—',0];
+
+  const areaCount = {};
+  t.forEach(x=> areaCount[x.area] = (areaCount[x.area]||0)+1);
+  const topArea = Object.entries(areaCount).sort((a,b)=>b[1]-a[1])[0] || ['—',0];
+
+  const instCount = {};
+  t.forEach(x=> instCount[x.instrutor] = (instCount[x.instrutor]||0)+1);
+  const topInst = Object.entries(instCount).sort((a,b)=>b[1]-a[1])[0] || ['—',0];
+
+  const cov = matrizCoverage();
+
+  document.getElementById('kpiRow').innerHTML = `
+    ${kpiCard('Treinamentos hoje', trToday, 'calendar', trToday>0?`+${trToday} desde às 08h`:'nenhum registrado ainda','up')}
+    ${kpiCard('Treinamentos no mês', trMonth, 'trend', `${months2026Label(thisMonth)}`,'up')}
+    ${kpiCard('Horas treinadas', totalHoras+'h', 'clock', `${totalMin} min acumulados`,'up')}
+    ${kpiCard('Participantes treinados', totalParticipantes, 'users', `${DB.colaboradores.length} colaboradores ativos`,'up')}
+  `;
+
+  document.getElementById('topLupCard').innerHTML = t.length===0
+    ? `<div style="color:var(--mist);font-size:13px;">Nenhum treinamento aplicado ainda. Cadastre suas LUPs e comece pelo Dashboard &gt; Iniciar Treinamento.</div>`
+    : `<div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:52px;height:52px;border-radius:12px;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--orange);font-family:var(--font-mono);font-size:13px;">${(DB.lups.find(l=>l.nome===topLup[0])||{}).codigo?.split('-')[1]||'LUP'}</div>
+      <div>
+        <div style="font-weight:700;font-size:14.5px;">${topLup[0]}</div>
+        <div style="font-size:12.5px;color:var(--slate);margin-top:2px;">${topLup[1]} aplicações · área com mais treinamento: <b>${topArea[0]}</b> (${topArea[1]})</div>
+        <div style="font-size:12.5px;color:var(--slate);margin-top:2px;">Instrutor destaque: <b>${topInst[0]}</b> (${topInst[1]} treinamentos)</div>
+      </div>
+    </div>`;
+
+  document.getElementById('coverageBar').innerHTML = DB.matriz.length===0
+    ? `<div style="color:var(--mist);font-size:13px;">Nenhuma matriz de treinamento cadastrada ainda. Preencha a aba "MATRIZ TREINAMENTO" na planilha para acompanhar a conformidade aqui.</div>`
+    : `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+      <span style="font-family:var(--font-display);font-size:26px;font-weight:800;">${cov.pct}%</span>
+      <span style="font-size:12px;color:var(--slate);">das combinações função × LUP obrigatória cobertas</span>
+    </div>
+    <div style="height:10px;border-radius:6px;background:var(--line);overflow:hidden;">
+      <div style="height:100%;width:${cov.pct}%;background:linear-gradient(90deg,var(--orange),var(--orange-dark));border-radius:6px;"></div>
+    </div>
+    <div style="display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--slate);">
+      <span><span class="badge green">●</span> ${cov.green} completos</span>
+      <span><span class="badge amber">●</span> ${cov.amber} pendentes</span>
+      <span><span class="badge red">●</span> ${cov.red} críticos</span>
+    </div>`;
+
+  // charts
+  destroyChart('area'); destroyChart('evo'); destroyChart('turno'); destroyChart('inst');
+  const ctxArea = document.getElementById('chartArea').getContext('2d');
+  chartRefs.area = new Chart(ctxArea, {
+    type:'bar',
+    data:{ labels:Object.keys(areaCount), datasets:[{data:Object.values(areaCount), backgroundColor:'#EE4D2D', borderRadius:6, maxBarThickness:34}] },
+    options: baseChartOpts(false)
+  });
+
+  const monthly = {};
+  t.forEach(x=>{ const m=x.data.slice(0,7); monthly[m]=(monthly[m]||0)+1; });
+  const monthKeys = Object.keys(monthly).sort();
+  const ctxEvo = document.getElementById('chartEvolucao').getContext('2d');
+  chartRefs.evo = new Chart(ctxEvo, {
+    type:'line',
+    data:{ labels:monthKeys.map(months2026Label), datasets:[{data:monthKeys.map(k=>monthly[k]), borderColor:'#EE4D2D', backgroundColor:'rgba(238,77,45,.12)', fill:true, tension:.35, pointBackgroundColor:'#EE4D2D', pointRadius:4}] },
+    options: baseChartOpts(false)
+  });
+
+  const turnoCount = {};
+  t.forEach(x=> turnoCount[x.turno.split(' (')[0]] = (turnoCount[x.turno.split(' (')[0]]||0)+1);
+  const ctxTurno = document.getElementById('chartTurno').getContext('2d');
+  chartRefs.turno = new Chart(ctxTurno, {
+    type:'doughnut',
+    data:{ labels:Object.keys(turnoCount), datasets:[{data:Object.values(turnoCount), backgroundColor:['#EE4D2D','#232429','#F0B26B'], borderWidth:0}] },
+    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11.5}}}} }
+  });
+
+  const ctxInst = document.getElementById('chartInstrutor').getContext('2d');
+  chartRefs.inst = new Chart(ctxInst, {
+    type:'bar',
+    data:{ labels:Object.keys(instCount), datasets:[{data:Object.values(instCount), backgroundColor:'#232429', borderRadius:6, maxBarThickness:28}] },
+    options: {...baseChartOpts(true)}
+  });
+
+  document.getElementById('treinCount').textContent = `${t.length} registrados`;
+  const recent = t.slice().sort((a,b)=> b.timestamp.localeCompare(a.timestamp)).slice(0,8);
+  document.getElementById('recentTreinTable').innerHTML = recent.length ? `
+    <table><thead><tr><th>Data</th><th>LUP</th><th>Área</th><th>Instrutor</th><th>Participantes</th><th>Motivo</th></tr></thead>
+    <tbody>${recent.map(x=>`<tr><td class="mono">${fmtDate(x.data)}</td><td>${x.nomeLup}</td><td>${x.area}</td><td>${x.instrutor}</td><td>${x.qtdParticipantes}</td><td><span class="badge gray">${x.motivo}</span></td></tr>`).join('')}</tbody></table>
+  ` : `<div class="empty-state"><p>Nenhum treinamento registrado ainda.</p></div>`;
+}
+
+function months2026Label(m){
+  const names = {'01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun','07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez'};
+  const [y,mm] = m.split('-');
+  return names[mm] + '/' + y.slice(2);
+}
+function baseChartOpts(horizontal){
+  return { indexAxis: horizontal?'y':'x', responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:!horizontal, color:'#F0EFEC'}, ticks:{font:{size:11}}}, y:{grid:{display:horizontal, color:'#F0EFEC'}, ticks:{font:{size:11}}, beginAtZero:true} } };
+}
+function kpiCard(label, val, icon, sub, trend){
+  const icons = {
+    calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    trend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+    clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="17" cy="8" r="2.7"/><path d="M15.5 13.8c2.6.5 4.5 2.8 4.5 5.6"/></svg>'
+  };
+  return `<div class="card kpi-card">
+    <div class="kpi-icon">${icons[icon]}</div>
+    <div class="kpi-val">${val}</div>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-trend ${trend}">${sub}</div>
+  </div>`;
+}
+
+function matrizCoverage(){
+  let green=0, amber=0, red=0;
+  DB.matriz.forEach(m=>{
+    const funcColabs = DB.colaboradores.filter(c=>c.cargo===m.funcao);
+    if(funcColabs.length===0) return;
+    funcColabs.forEach(c=>{
+      const trained = DB.participantes.some(p=>p.matricula===c.matricula && DB.treinamentos.find(t=>t.id===p.idTreinamento && t.codigoLup===m.lup));
+      if(trained) green++; else amber++;
+    });
+  });
+  const total = green+amber+red || 1;
+  return { green, amber, red, pct: Math.round(green/total*100) };
+}
+</script>
+<script>
+/* ======================================================================
+   BIBLIOTECA DE LUPS
+====================================================================== */
+let lupFilterArea = 'Todas';
+
+function renderBiblioteca(){
+  const areas = ['Todas', ...new Set(DB.lups.map(l=>l.area))];
+  document.getElementById('lupFilterChips').innerHTML = areas.map(a=>
+    `<button class="chip ${a===lupFilterArea?'active':''}" onclick="setLupFilter('${a}')">${a}</button>`
+  ).join('');
+
+  const list = DB.lups.filter(l=> lupFilterArea==='Todas' || l.area===lupFilterArea);
+  document.getElementById('lupGrid').innerHTML = list.map(l => `
+    <div class="card" style="padding:12px;">
+      <div class="lup-thumb" onclick="viewLup('${l.codigo}')" style="cursor:pointer;">
+        ${lupThumbSVG(l)}
+      </div>
+      <div style="padding:12px 4px 2px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="font-weight:700;font-size:13.5px;line-height:1.3;">${l.nome}</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--slate);margin-top:4px;" class="mono">${l.codigo} · ${l.versao}</div>
+        <div style="display:flex;gap:6px;margin-top:10px;align-items:center;">
+          <span class="badge green">${l.status}</span>
+          <span class="badge gray">${l.area}</span>
+        </div>
+      </div>
+    </div>
+  `).join('') || (DB.lups.length===0
+      ? `<div class="empty-state" style="grid-column:1/-1;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <p>Nenhuma LUP cadastrada ainda. Use "Cadastrar nova LUP" para começar.</p>
+        </div>`
+      : `<div class="empty-state" style="grid-column:1/-1;"><p>Nenhuma LUP nesta área.</p></div>`);
+}
+function setLupFilter(a){ lupFilterArea=a; renderBiblioteca(); }
+
+function lupThumbSVG(l){
+  const colorMap = {'Picking':'#EE4D2D','Putaway':'#232429','Segurança':'#D6392E'};
+  const c = colorMap[l.area] || '#EE4D2D';
+  return `<div class="thumb-render" style="background:linear-gradient(160deg, ${c}12, #fff 55%);padding:14px;display:flex;flex-direction:column;">
+    <div style="font-family:var(--font-mono);font-size:9px;color:${c};font-weight:700;">${l.codigo}</div>
+    <div style="font-family:var(--font-display);font-weight:800;font-size:13px;margin-top:6px;line-height:1.25;">${l.nome.split('—')[0]}</div>
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:5px;">
+      <div style="height:5px;width:80%;background:${c}33;border-radius:3px;"></div>
+      <div style="height:5px;width:60%;background:${c}22;border-radius:3px;"></div>
+      <div style="height:5px;width:70%;background:${c}22;border-radius:3px;"></div>
+    </div>
+    <div style="align-self:flex-end;width:22px;height:22px;border-radius:6px;background:${c};margin-top:8px;"></div>
+  </div>`;
+}
+
+function lupFullRender(l, opts={}){
+  const colorMap = {'Picking':'#EE4D2D','Putaway':'#232429','Checking':'#1E9E5A','Packing':'#D98A11','Segurança':'#D6392E','Inventory':'#5B5E68','Qualidade':'#0C7CB3','Avarias':'#8B3FD1'};
+  const c = colorMap[l.area] || '#EE4D2D';
+  return `
+  <div style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line);font-family:var(--font-body);">
+    <div style="background:${c};color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;opacity:.85;">${l.codigo} · ${l.versao}</div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:19px;margin-top:2px;">${l.nome}</div>
+      </div>
+      <div style="text-align:right;font-size:10.5px;opacity:.9;">
+        LIÇÃO DE UM PONTO<br>CENTRAL LUP · BRFPE1
+      </div>
+    </div>
+    <div style="padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:${c};font-weight:700;margin-bottom:5px;">🎯 Objetivo</div>
+        <div style="font-size:13px;color:var(--charcoal);line-height:1.5;">${l.objetivo}</div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:${c};font-weight:700;margin-bottom:5px;">⚠️ Risco</div>
+        <div style="font-size:13px;color:var(--charcoal);line-height:1.5;">${l.risco}</div>
+      </div>
+      <div style="grid-column:1/-1;background:${c}0d;border-left:3px solid ${c};padding:12px 14px;border-radius:6px;">
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:${c};font-weight:700;margin-bottom:4px;">📌 Ponto-chave</div>
+        <div style="font-size:13.5px;font-weight:600;">${l.pontoChave}</div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--green);font-weight:700;margin-bottom:6px;">✔ Correto</div>
+        <ul style="font-size:12.5px;line-height:1.85;padding-left:16px;">${l.correto.map(x=>`<li>${x}</li>`).join('')}</ul>
+      </div>
+      <div>
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--red);font-weight:700;margin-bottom:6px;">✘ Evitar</div>
+        <ul style="font-size:12.5px;line-height:1.85;padding-left:16px;">${l.evitar.map(x=>`<li>${x}</li>`).join('')}</ul>
+      </div>
+      <div style="grid-column:1/-1;">
+        <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:${c};font-weight:700;margin-bottom:6px;">🔢 Passo a passo</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${l.passos.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:${c};color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div><div style="font-size:12.5px;">${p}</div></div>`).join('')}
+        </div>
+      </div>
+      <div style="grid-column:1/-1;background:var(--ink);color:#fff;border-radius:8px;padding:12px 16px;font-size:12.5px;font-style:italic;text-align:center;">
+        "${l.motivador}"
+      </div>
+    </div>
+  </div>`;
+}
+
+function viewLup(codigo){
+  const l = DB.lups.find(x=>x.codigo===codigo);
+  openModal(`
+    <div class="modal-head"><h3>${l.nome}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">${lupFullRender(l)}
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);">
+        <span>Área: <b>${l.area}</b></span>·<span>Criada em ${fmtDate(l.dataCriacao)}</span>·<span>Última revisão ${fmtDate(l.ultimaRevisao)}</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="printLup('${l.codigo}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Baixar / Imprimir
+      </button>
+      <button class="btn btn-orange" onclick="closeModal(); nav('aplicar'); presetLup('${l.codigo}');">Usar em treinamento</button>
+    </div>
+  `, true);
+}
+function printLup(codigo){
+  const l = DB.lups.find(x=>x.codigo===codigo);
+  document.getElementById('printArea').innerHTML = lupFullRender(l);
+  window.print();
+}
+function openUploadLup(){
+  openModal(`
+    <div class="modal-head"><h3>Cadastrar nova LUP</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="grid grid-2" style="margin-bottom:14px;">
+        <div><label class="field-label">Código</label><input class="field-input" id="newLupCodigo" placeholder="LUP-QUAL-004"></div>
+        <div><label class="field-label">Nome</label><input class="field-input" id="newLupNome" placeholder="Nome da LUP"></div>
+      </div>
+      <div class="grid grid-2" style="margin-bottom:14px;">
+        <div><label class="field-label">Área</label><select class="field-input" id="newLupArea">${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></div>
+        <div><label class="field-label">Versão</label><input class="field-input" id="newLupVersao" value="v1"></div>
+      </div>
+      <label class="field-label">Arquivo (PDF, PNG ou JPG)</label>
+      <input type="file" class="field-input" accept=".pdf,.png,.jpg,.jpeg">
+      <p style="font-size:11.5px;color:var(--mist);margin-top:10px;">O arquivo é salvo automaticamente no Google Drive e o link é gravado na aba LUPS da planilha.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-orange" onclick="saveNewLup()">Salvar LUP</button>
+    </div>
+  `);
+}
+function saveNewLup(){
+  const codigo = document.getElementById('newLupCodigo').value.trim() || 'LUP-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  const nome = document.getElementById('newLupNome').value.trim() || 'Nova LUP';
+  const area = document.getElementById('newLupArea').value;
+  DB.lups.push({codigo, nome, area, processo:area, subprocesso:'—', categoria:'Operacional',
+    versao:document.getElementById('newLupVersao').value||'v1', status:'Vigente',
+    dataCriacao:'2026-07-03', ultimaRevisao:'2026-07-03',
+    objetivo:'Definir objetivo desta LUP.', risco:'Descrever risco associado.', pontoChave:'Definir ponto-chave.',
+    correto:['Adicionar prática correta'], evitar:['Adicionar prática a evitar'], motivador:'Frase motivadora.',
+    passos:['Passo 1'], quiz:[{q:'Pergunta de exemplo', opts:['A','B','C'], correta:0}]});
+  closeModal();
+  renderBiblioteca();
+  syncToSheets('lups', DB.lups[DB.lups.length-1]);
+  toast('LUP cadastrada com sucesso', 'success');
+}
+</script>
+<script>
+/* ======================================================================
+   APLICAR TREINAMENTO — fluxo guiado
+====================================================================== */
+let TREINO = null;
+function blankTreino(){
+  return {
+    step:1, area:'', processo:'', codigoLup:'', participantes:[], data:'2026-07-03',
+    horaInicio:'', horaFim:'', turno:TURNOS[0], motivo:'Integração',
+    presStart:null, presEnd:null, quizResults:{}, assinaturas:{}, instrutorAssinatura:null
+  };
+}
+function restartTreino(){ TREINO = blankTreino(); renderTreinoStep(); toast('Fluxo reiniciado'); }
+function presetLup(codigo){
+  const l = DB.lups.find(x=>x.codigo===codigo);
+  TREINO = blankTreino();
+  TREINO.area = l.area; TREINO.processo = l.processo; TREINO.codigoLup = l.codigo;
+  TREINO.step = 2;
+  renderTreinoStep();
+}
+if(!TREINO) TREINO = blankTreino();
+
+const STEP_LABELS = ['Área / LUP','Dados do treinamento','Participantes','Apresentação','Quiz','Assinatura','Ata'];
+
+function renderTreinoStep(){
+  const el = document.getElementById('progressSteps');
+  el.innerHTML = STEP_LABELS.map((label,i)=>{
+    const n = i+1;
+    const state = n<TREINO.step ? 'done' : (n===TREINO.step?'active':'');
+    return `<div class="pstep ${state}">
+      <div class="circ">${n<TREINO.step?'✓':n}</div>
+      <span class="plabel">${label}</span>
+      ${n<STEP_LABELS.length?'<div class="pline"></div>':''}
+    </div>`;
+  }).join('');
+
+  const content = document.getElementById('stepContent');
+  if(TREINO.step===1) content.innerHTML = stepAreaLup();
+  else if(TREINO.step===2) content.innerHTML = stepDados();
+  else if(TREINO.step===3) content.innerHTML = stepParticipantes();
+  else if(TREINO.step===4) content.innerHTML = stepPresentation();
+  else if(TREINO.step===5) content.innerHTML = stepQuiz();
+  else if(TREINO.step===6) content.innerHTML = stepSignature();
+  else if(TREINO.step===7) content.innerHTML = stepAta();
+
+  if(TREINO.step===6) setTimeout(initSignaturePads, 30);
+}
+
+function stepAreaLup(){
+  return `<div class="card" style="max-width:720px;">
+    <div class="card-head"><h3>Passo 1 · Selecione área, processo e LUP</h3></div>
+    <label class="field-label">Área</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+      ${AREAS.map(a=>`<button class="chip ${TREINO.area===a?'active':''}" onclick="selectTreinoArea('${a}')">${a}</button>`).join('')}
+    </div>
+    <label class="field-label">LUP disponível para esta área</label>
+    <div class="grid grid-2" id="lupPickGrid" style="margin-bottom:20px;">${lupPickOptions()}</div>
+    <button class="btn btn-orange" onclick="goStep(2)" ${!TREINO.codigoLup?'disabled style="opacity:.4;pointer-events:none;"':''}>Continuar →</button>
+  </div>`;
+}
+function selectTreinoArea(a){ TREINO.area=a; TREINO.processo=a; TREINO.codigoLup=''; renderTreinoStep(); }
+function lupPickOptions(){
+  const list = DB.lups.filter(l=> !TREINO.area || l.area===TREINO.area);
+  if(!list.length){
+    const msg = !TREINO.area
+      ? 'Selecione uma área para ver LUPs disponíveis.'
+      : DB.lups.length===0
+        ? 'Nenhuma LUP cadastrada ainda. Cadastre na Biblioteca de LUPs antes de aplicar um treinamento.'
+        : 'Nenhuma LUP cadastrada para esta área ainda.';
+    return `<div class="empty-state" style="grid-column:1/-1;"><p>${msg}</p></div>`;
+  }
+  return list.map(l=>`
+    <button class="card" style="text-align:left;border-color:${TREINO.codigoLup===l.codigo?'var(--orange)':'var(--line)'};background:${TREINO.codigoLup===l.codigo?'var(--orange-light)':'#fff'};" onclick="selectTreinoLup('${l.codigo}')">
+      <div class="mono" style="font-size:11px;color:var(--slate);">${l.codigo}</div>
+      <div style="font-weight:700;font-size:13.5px;margin-top:3px;">${l.nome}</div>
+      <div style="font-size:11.5px;color:var(--slate);margin-top:5px;">${l.versao} · ${l.status}</div>
+    </button>`).join('');
+}
+function selectTreinoLup(codigo){ TREINO.codigoLup=codigo; renderTreinoStep(); }
+
+function stepDados(){
+  return `<div class="card" style="max-width:720px;">
+    <div class="card-head"><h3>Passo 2 · Dados do treinamento</h3></div>
+    <div class="grid grid-2" style="margin-bottom:14px;">
+      <div><label class="field-label">Data</label><input type="date" class="field-input" id="fData" value="${TREINO.data}"></div>
+      <div><label class="field-label">Turno</label><select class="field-input" id="fTurno">${TURNOS.map(t=>`<option ${t===TREINO.turno?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div><label class="field-label">Hora início</label><input type="time" class="field-input" id="fInicio" value="${TREINO.horaInicio||'08:00'}"></div>
+      <div><label class="field-label">Hora fim (previsto)</label><input type="time" class="field-input" id="fFim" value="${TREINO.horaFim||'08:30'}"></div>
+    </div>
+    <label class="field-label">Motivo do treinamento</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+      ${['Integração','Reciclagem','Mudança de processo','Diarista','Desvio operacional','Acidente','Auditoria','Outro'].map(m=>`<button class="chip ${TREINO.motivo===m?'active':''}" onclick="selectMotivo('${m}')">${m}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Voltar</button>
+      <button class="btn btn-orange" onclick="saveStep2AndGo()">Continuar →</button>
+    </div>
+  </div>`;
+}
+function selectMotivo(m){ TREINO.motivo=m; renderTreinoStep(); }
+function saveStep2AndGo(){
+  TREINO.data = document.getElementById('fData').value || TREINO.data;
+  TREINO.horaInicio = document.getElementById('fInicio').value;
+  TREINO.horaFim = document.getElementById('fFim').value;
+  TREINO.turno = document.getElementById('fTurno').value;
+  goStep(3);
+}
+
+function stepParticipantes(){
+  return `<div class="card" style="max-width:820px;">
+    <div class="card-head"><h3>Passo 3 · Adicionar participantes</h3><span class="muted" id="participantesCountLabel">${TREINO.participantes.length} adicionado(s)</span></div>
+    <p style="font-size:12.5px;color:var(--slate);margin-bottom:14px;">Registro manual — informe matrícula e nome completo de quem participou. Não é necessário cadastro prévio na base de colaboradores.</p>
+    <div class="grid grid-2" style="margin-bottom:10px;">
+      <div><label class="field-label">Matrícula</label><input class="field-input" id="partMatricula" placeholder="Ex: 40021" onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('partNome').focus(); }"></div>
+      <div><label class="field-label">Nome completo</label><input class="field-input" id="partNome" placeholder="Ex: Ana Beatriz Souza" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addParticipanteManual(); }"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+      <button class="btn btn-orange" onclick="addParticipanteManual()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar participante
+      </button>
+    </div>
+    <div id="participantePreview" style="min-height:20px;font-size:12.5px;color:var(--slate);margin-bottom:16px;"></div>
+    <div style="max-height:280px;overflow-y:auto;">
+      <table>
+        <thead><tr><th>Matrícula</th><th>Nome</th><th>Cargo</th><th></th></tr></thead>
+        <tbody id="participantesBody">${participantesRows()}</tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Voltar</button>
+      <button class="btn btn-orange" id="participantesContinueBtn" onclick="goStep(4)" ${TREINO.participantes.length===0?'disabled style="opacity:.4;pointer-events:none;"':''}>Continuar para apresentação →</button>
+    </div>
+  </div>`;
+}
+function refreshParticipantesControls(){
+  const btn = document.getElementById('participantesContinueBtn');
+  if(btn){
+    const empty = TREINO.participantes.length===0;
+    btn.disabled = empty;
+    btn.style.opacity = empty?.4:1;
+    btn.style.pointerEvents = empty?'none':'auto';
+  }
+  const label = document.getElementById('participantesCountLabel');
+  if(label) label.textContent = `${TREINO.participantes.length} adicionado(s)`;
+}
+function participantesRows(){
+  if(!TREINO.participantes.length) return `<tr><td colspan="4" style="text-align:center;color:var(--mist);">Nenhum participante adicionado</td></tr>`;
+  return TREINO.participantes.map(c=>`<tr>
+    <td class="mono">${c.matricula}</td><td>${c.nome}</td><td>${c.cargo==='Não cadastrado'?'<span class="badge gray">Não cadastrado</span>':c.cargo}</td>
+    <td><button class="btn-sm btn-ghost" onclick="removeParticipante('${c.matricula}')">Remover</button></td>
+  </tr>`).join('');
+}
+function addParticipanteManual(){
+  const matInput = document.getElementById('partMatricula');
+  const nomeInput = document.getElementById('partNome');
+  const matricula = matInput.value.trim();
+  const nome = nomeInput.value.trim();
+  const preview = document.getElementById('participantePreview');
+  if(!matricula || !nome){ preview.innerHTML = `<span style="color:var(--red);">Informe matrícula e nome completo.</span>`; return; }
+  if(TREINO.participantes.find(p=>p.matricula===matricula)){ preview.innerHTML = `<span style="color:var(--amber);">Essa matrícula já foi adicionada neste treinamento.</span>`; return; }
+  const known = DB.colaboradores.find(c=>c.matricula===matricula);
+  const participante = {
+    matricula, nome,
+    cargo: known ? known.cargo : 'Não cadastrado',
+    equipe: known ? known.equipe : '—',
+    turno: known ? known.turno : TREINO.turno,
+    area: known ? known.area : TREINO.area
+  };
+  TREINO.participantes.push(participante);
+  preview.innerHTML = known
+    ? `<span style="color:var(--green);">✓ ${nome} adicionado — cadastro encontrado (${known.cargo}).</span>`
+    : `<span style="color:var(--green);">✓ ${nome} adicionado.</span>`;
+  matInput.value=''; nomeInput.value=''; matInput.focus();
+  document.getElementById('participantesBody').innerHTML = participantesRows();
+  refreshParticipantesControls();
+}
+function removeParticipante(matricula){
+  TREINO.participantes = TREINO.participantes.filter(p=>p.matricula!==matricula);
+  document.getElementById('participantesBody').innerHTML = participantesRows();
+  refreshParticipantesControls();
+}
+
+function goStep(n){ TREINO.step = n; renderTreinoStep(); }
+
+/* ---- PASSO 4: Apresentação em tela cheia ---- */
+let presTimer = null, presSeconds = 0;
+function stepPresentation(){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  return `<div class="card">
+    <div class="card-head"><h3>Passo 4 · Modo apresentação</h3><span class="muted">Abra em tela cheia para conduzir o treinamento</span></div>
+    <div style="max-width:600px;margin:0 auto;">${lupFullRender(l)}</div>
+    <div style="display:flex;justify-content:center;margin-top:20px;">
+      <button class="btn btn-dark" style="padding:14px 26px;" onclick="openFullscreenPresentation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        Iniciar apresentação em tela cheia
+      </button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px;">
+      <button class="btn btn-ghost" onclick="goStep(3)">← Voltar</button>
+      <button class="btn btn-orange" onclick="finishPresentation()" ${!TREINO.presStart?'disabled style="opacity:.4;pointer-events:none;"':''}>Encerrar apresentação e continuar →</button>
+    </div>
+  </div>`;
+}
+function openFullscreenPresentation(){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  if(!TREINO.presStart){ TREINO.presStart = new Date(); presSeconds=0; }
+  openModal(`
+    <div class="modal-head">
+      <h3>Apresentação · ${l.nome}</h3>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="mono" id="presTimerDisplay" style="font-size:15px;font-weight:700;color:var(--orange);">00:00</span>
+        <button class="modal-close" onclick="closePresentation()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">${lupFullRender(l)}</div>
+    <div class="modal-foot">
+      <button class="btn btn-orange" onclick="closePresentation(true)">Encerrar apresentação</button>
+    </div>
+  `, true);
+  clearInterval(presTimer);
+  presTimer = setInterval(()=>{
+    presSeconds++;
+    const m = String(Math.floor(presSeconds/60)).padStart(2,'0');
+    const s = String(presSeconds%60).padStart(2,'0');
+    const disp = document.getElementById('presTimerDisplay');
+    if(disp) disp.textContent = `${m}:${s}`;
+  }, 1000);
+}
+function closePresentation(finish){
+  clearInterval(presTimer);
+  closeModal();
+  if(finish) finishPresentation();
+}
+function finishPresentation(){
+  TREINO.presEnd = new Date();
+  const mins = Math.max(1, Math.round(presSeconds/60));
+  TREINO.duracaoMin = mins;
+  toast(`Apresentação registrada: ${mins} min de duração`, 'success');
+  goStep(5);
+}
+
+/* ---- PASSO 5: Quiz ---- */
+function stepQuiz(){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  const answered = Object.keys(TREINO.quizResults).length;
+  return `<div class="card" style="max-width:760px;">
+    <div class="card-head"><h3>Passo 5 · Quiz de aprendizado</h3><span class="muted">${answered}/${TREINO.participantes.length} participantes avaliados</span></div>
+    <p style="font-size:13px;color:var(--slate);margin-bottom:18px;">Aplique de ${l.quiz.length>=3?'3 a 5':'3'} perguntas para cada participante. Selecione o participante e registre o resultado.</p>
+    <div id="quizParticipantList" style="display:flex;flex-direction:column;gap:8px;">
+      ${TREINO.participantes.map(c=>quizParticipantRow(c,l)).join('')}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="goStep(4)">← Voltar</button>
+      <button class="btn btn-orange" onclick="goStep(6)" ${answered<TREINO.participantes.length?'disabled style="opacity:.4;pointer-events:none;"':''}>Continuar para assinatura →</button>
+    </div>
+  </div>`;
+}
+function quizParticipantRow(c,l){
+  const res = TREINO.quizResults[c.matricula];
+  return `<div class="card" style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+    <div><b style="font-size:13.5px;">${c.nome}</b><div class="mono" style="font-size:11.5px;color:var(--slate);">${c.matricula} · ${c.cargo}</div></div>
+    ${res ? `<span class="badge ${res.status==='Aprovado'?'green':res.status==='Reciclagem recomendada'?'amber':'red'}">${res.nota}% · ${res.status}</span>`
+      : `<button class="btn btn-sm btn-orange" onclick="openQuizModal('${c.matricula}')">Aplicar quiz</button>`}
+  </div>`;
+}
+function openQuizModal(matricula){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  const c = TREINO.participantes.find(p=>p.matricula===matricula);
+  const qs = l.quiz.slice(0, Math.min(5, Math.max(3,l.quiz.length)));
+  openModal(`
+    <div class="modal-head"><h3>Quiz · ${c.nome}</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <form id="quizForm">
+        ${qs.map((q,qi)=>`
+          <div style="margin-bottom:18px;">
+            <div style="font-weight:600;font-size:13.5px;margin-bottom:8px;">${qi+1}. ${q.q}</div>
+            ${q.opts.map((o,oi)=>`
+              <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:13px;">
+                <input type="radio" name="q${qi}" value="${oi}" ${oi===q.correta?'':''}> ${o}
+              </label>`).join('')}
+          </div>`).join('')}
+      </form>
+    </div>
+    <div class="modal-foot"><button class="btn btn-orange" onclick="submitQuiz('${matricula}', ${qs.length})">Registrar resultado</button></div>
+  `, true);
+}
+function submitQuiz(matricula, totalQ){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  const qs = l.quiz.slice(0, totalQ);
+  let correct = 0;
+  qs.forEach((q,qi)=>{
+    const checked = document.querySelector(`input[name="q${qi}"]:checked`);
+    if(checked && parseInt(checked.value)===q.correta) correct++;
+  });
+  const nota = Math.round((correct/totalQ)*100);
+  const status = nota>=80?'Aprovado':(nota>=60?'Reciclagem recomendada':'Reforço obrigatório');
+  TREINO.quizResults[matricula] = {nota, status};
+  closeModal();
+  renderTreinoStep();
+  toast(`Resultado registrado: ${nota}% (${status})`, nota>=60?'success':'error');
+}
+
+/* ---- PASSO 6: Assinatura digital ---- */
+function stepSignature(){
+  return `<div class="card" style="max-width:760px;">
+    <div class="card-head"><h3>Passo 6 · Assinatura digital</h3><span class="muted">Mouse, touchscreen ou celular</span></div>
+    <div id="sigSlides"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-ghost" onclick="goStep(5)">← Voltar</button>
+      <button class="btn btn-orange" id="sigContinueBtn" onclick="goStep(7)" disabled style="opacity:.4;">Gerar ata →</button>
+    </div>
+  </div>`;
+}
+let sigCurrentIdx = 0;
+function allSigners(){ return [...TREINO.participantes, {email:SESSION.email, nome:SESSION.nome, cargo:'Instrutor', isInstrutor:true}]; }
+function initSignaturePads(){
+  sigCurrentIdx = 0;
+  renderSignerCard();
+}
+function renderSignerCard(){
+  const signers = allSigners();
+  const wrap = document.getElementById('sigSlides');
+  if(!wrap) return;
+  if(sigCurrentIdx >= signers.length){
+    wrap.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg><p>Todas as assinaturas coletadas.</p></div>`;
+    document.getElementById('sigContinueBtn').disabled = false;
+    document.getElementById('sigContinueBtn').style.opacity = 1;
+    return;
+  }
+  const s = signers[sigCurrentIdx];
+  wrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div><b style="font-size:14px;">${s.nome}</b> <span class="badge gray">${s.isInstrutor?'Instrutor':s.cargo}</span></div>
+      <span class="mono" style="font-size:11.5px;color:var(--slate);">${sigCurrentIdx+1} de ${signers.length}</span>
+    </div>
+    <div class="sigpad-wrap">
+      <canvas id="sigCanvas"></canvas>
+      <div class="sigpad-line"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="clearSig()">Limpar</button>
+      <button class="btn btn-orange btn-sm" onclick="confirmSig('${s.matricula || s.email}', ${!!s.isInstrutor})">Confirmar assinatura →</button>
+    </div>`;
+  setupCanvas();
+}
+let sigCtx, sigDrawing=false, sigHasDrawn=false;
+function setupCanvas(){
+  const canvas = document.getElementById('sigCanvas');
+  const ratio = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width*ratio; canvas.height = 160*ratio;
+  sigCtx = canvas.getContext('2d');
+  sigCtx.scale(ratio,ratio);
+  sigCtx.strokeStyle = '#17181C'; sigCtx.lineWidth = 2.2; sigCtx.lineCap='round';
+  sigHasDrawn = false;
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const x = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
+    const y = (e.touches?e.touches[0].clientY:e.clientY) - r.top;
+    return {x,y};
+  }
+  function start(e){ sigDrawing=true; sigHasDrawn=true; const p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!sigDrawing) return; const p=pos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); e.preventDefault(); }
+  function end(){ sigDrawing=false; }
+  canvas.onmousedown=start; canvas.onmousemove=move; canvas.onmouseup=end; canvas.onmouseleave=end;
+  canvas.ontouchstart=start; canvas.ontouchmove=move; canvas.ontouchend=end;
+}
+function clearSig(){ setupCanvas(); }
+function confirmSig(signerKey, isInstrutor){
+  if(!sigHasDrawn){ toast('Colete a assinatura antes de confirmar', 'error'); return; }
+  const dataUrl = document.getElementById('sigCanvas').toDataURL();
+  if(isInstrutor) TREINO.instrutorAssinatura = dataUrl;
+  else TREINO.assinaturas[signerKey] = dataUrl;
+  sigCurrentIdx++;
+  renderSignerCard();
+}
+</script>
+<script>
+/* ---- PASSO 7: Ata automática ---- */
+function stepAta(){
+  if(!TREINO._saved){ commitTreinamento(); }
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  const id = TREINO._id;
+  return `<div class="card" style="max-width:800px;">
+    <div class="card-head"><h3>Passo 7 · Ata gerada com sucesso</h3><span class="badge green">Salvo na planilha</span></div>
+    <div id="ataDoc">${ataHTML(TREINO, l, id)}</div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="printAta()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Baixar PDF da ata
+      </button>
+      <button class="btn btn-orange" onclick="restartTreino()">Iniciar novo treinamento</button>
+      <button class="btn btn-dark" onclick="nav('dashboard')">Ver no dashboard</button>
+    </div>
+  </div>`;
+}
+function commitTreinamento(){
+  const l = DB.lups.find(x=>x.codigo===TREINO.codigoLup);
+  const id = 'TR-' + String(DB.treinamentos.length+1).padStart(4,'0');
+  TREINO._id = id;
+  const rec = {
+    id, data:TREINO.data, horaInicio:TREINO.horaInicio, horaFim:TREINO.horaFim,
+    duracao:(TREINO.duracaoMin||30)+' min', area:TREINO.area, processo:TREINO.processo, turno:TREINO.turno,
+    instrutor:SESSION.nome, emailInstrutor:SESSION.email, codigoLup:l.codigo, nomeLup:l.nome,
+    motivo:TREINO.motivo, qtdParticipantes:TREINO.participantes.length, linkAta:'', qrCode:id,
+    timestamp:new Date().toISOString()
+  };
+  DB.treinamentos.push(rec);
+  TREINO.participantes.forEach((c,i)=>{
+    const res = TREINO.quizResults[c.matricula] || {nota:0, status:'—'};
+    DB.participantes.push({
+      idParticipacao:`${id}-P${i+1}`, idTreinamento:id, matricula:c.matricula, nome:c.nome, funcao:c.cargo,
+      equipe:c.equipe, resultadoQuiz:res.status, nota:res.nota, assinatura:!!TREINO.assinaturas[c.matricula],
+      data:TREINO.data, timestamp:new Date().toISOString()
+    });
+  });
+  TREINO._saved = true;
+  syncToSheets('treinamentos', rec);
+  toast('Ata gerada e treinamento registrado na planilha', 'success');
+}
+function ataHTML(t, l, id){
+  const qrDivId = 'qr-'+id;
+  setTimeout(()=>{
+    const target = document.getElementById(qrDivId);
+    if(target && window.QRCode){ target.innerHTML=''; new QRCode(target, {text:`CENTRAL-LUP::${id}::${l.codigo}`, width:76, height:76, colorDark:'#17181C', colorLight:'#ffffff'}); }
+  }, 30);
+  return `
+  <div style="border:1px solid var(--line);border-radius:10px;overflow:hidden;">
+    <div style="background:var(--ink);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:16px;">CENTRAL LUP</div>
+        <div style="font-size:11px;opacity:.7;letter-spacing:.04em;">REGISTRO OFICIAL DE TREINAMENTO</div>
+      </div>
+      <div class="mono" style="font-size:12px;opacity:.85;">Ata Nº ${id}</div>
+    </div>
+    <div style="padding:20px 22px;">
+      <div class="grid grid-4" style="gap:10px;margin-bottom:18px;font-size:12.5px;">
+        <div><span style="color:var(--slate);">Data</span><br><b>${fmtDate(t.data)}</b></div>
+        <div><span style="color:var(--slate);">Área / Processo</span><br><b>${t.area}</b></div>
+        <div><span style="color:var(--slate);">Turno</span><br><b>${t.turno.split(' (')[0]}</b></div>
+        <div><span style="color:var(--slate);">Duração</span><br><b>${t.duracaoMin||30} min</b></div>
+        <div><span style="color:var(--slate);">Instrutor</span><br><b>${SESSION.nome}</b></div>
+        <div><span style="color:var(--slate);">LUP</span><br><b>${l.codigo}</b></div>
+        <div><span style="color:var(--slate);">Motivo</span><br><b>${t.motivo}</b></div>
+        <div><span style="color:var(--slate);">Hora</span><br><b>${t.horaInicio} – ${t.horaFim}</b></div>
+      </div>
+      <table style="margin-bottom:16px;">
+        <thead><tr><th>Matrícula</th><th>Nome</th><th>Função</th><th>Quiz</th><th>Assinatura</th></tr></thead>
+        <tbody>
+          ${t.participantes.map(c=>{
+            const res = t.quizResults[c.matricula]||{nota:0,status:'—'};
+            const sig = t.assinaturas[c.matricula];
+            return `<tr><td class="mono">${c.matricula}</td><td>${c.nome}</td><td>${c.cargo}</td>
+              <td><span class="badge ${res.status==='Aprovado'?'green':res.status==='Reciclagem recomendada'?'amber':'red'}">${res.nota}%</span></td>
+              <td>${sig?`<img src="${sig}" style="height:26px;">`:'—'}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--slate);margin-bottom:4px;">Assinatura do instrutor</div>
+          ${t.instrutorAssinatura?`<img src="${t.instrutorAssinatura}" style="height:36px;">`:'—'}
+          <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px;font-size:12px;">${SESSION.nome}</div>
+        </div>
+        <div id="${qrDivId}" style="flex-shrink:0;"></div>
+      </div>
+      <p style="font-size:10.5px;color:var(--mist);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:12px;">
+        Os participantes acima declaram ter recebido treinamento referente à LUP apresentada e comprometem-se a seguir os procedimentos operacionais estabelecidos.
+      </p>
+    </div>
+  </div>`;
+}
+function printAta(){
+  document.getElementById('printArea').innerHTML = document.getElementById('ataDoc').innerHTML;
+  window.print();
+}
+</script>
+
+<script>
+/* ======================================================================
+   PERFIL DO COLABORADOR
+====================================================================== */
+function renderColabResults(){
+  const q = (document.getElementById('colabSearch')?.value || '').toLowerCase();
+  const resultsEl = document.getElementById('colabResults');
+  if(!q){ resultsEl.innerHTML=''; return; }
+  const matches = DB.colaboradores.filter(c=> c.matricula.includes(q) || c.email.toLowerCase().includes(q) || c.nome.toLowerCase().includes(q)).slice(0,6);
+  resultsEl.innerHTML = matches.map(c=>`
+    <div onclick="showColabProfile('${c.matricula}')" style="padding:10px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;" onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background=''">
+      <span><b>${c.nome}</b> <span class="mono" style="color:var(--slate);">· ${c.matricula}</span></span>
+      <span class="badge gray">${c.cargo}</span>
+    </div>`).join('') || `<div style="color:var(--mist);font-size:13px;padding:8px;">Nenhum colaborador encontrado</div>`;
+}
+function showColabProfile(matricula){
+  const c = DB.colaboradores.find(x=>x.matricula===matricula);
+  const hist = DB.participantes.filter(p=>p.matricula===matricula).sort((a,b)=>b.data.localeCompare(a.data));
+  const totalHoras = hist.reduce((s,p)=>{ const tr=DB.treinamentos.find(t=>t.id===p.idTreinamento); return s + (tr?parseInt(tr.duracao):0); },0);
+  const ultimoTreino = hist[0];
+  const matrizFuncao = DB.matriz.filter(m=>m.funcao===c.cargo);
+  document.getElementById('colabSearch').value = `${c.nome} (${c.matricula})`;
+  document.getElementById('colabResults').innerHTML = '';
+  document.getElementById('colabProfile').innerHTML = `
+    <div class="card" style="margin-bottom:16px;display:flex;gap:18px;align-items:center;">
+      <div style="width:60px;height:60px;border-radius:14px;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;font-family:var(--font-display);">${initials(c.nome)}</div>
+      <div>
+        <div style="font-weight:700;font-size:17px;">${c.nome}</div>
+        <div style="font-size:12.5px;color:var(--slate);margin-top:2px;">${c.cargo} · ${c.area} · Gestor: ${c.gestor}</div>
+        <div class="mono" style="font-size:11.5px;color:var(--mist);margin-top:2px;">${c.matricula} · ${c.email} · ${c.equipe} · ${c.turno}</div>
+      </div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      ${kpiCard('Total de treinamentos', hist.length, 'calendar', c.status,'up')}
+      ${kpiCard('Horas treinadas', (totalHoras/60).toFixed(1)+'h', 'clock', `${totalHoras} min acumulados`,'up')}
+      ${kpiCard('Último treinamento', ultimoTreino?fmtDate(ultimoTreino.data):'—', 'trend', ultimoTreino?ultimoTreino.resultadoQuiz:'sem histórico', ultimoTreino&&ultimoTreino.resultadoQuiz==='Aprovado'?'up':'down')}
+      ${kpiCard('LUPs obrigatórias', matrizFuncao.length, 'users', `para a função ${c.cargo}`,'up')}
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Timeline de treinamentos</h3></div>
+      ${hist.length? `<table><thead><tr><th>Data</th><th>LUP</th><th>Nota</th><th>Resultado</th><th>Assinatura</th></tr></thead>
+      <tbody>${hist.map(p=>{
+        const tr = DB.treinamentos.find(t=>t.id===p.idTreinamento);
+        return `<tr><td class="mono">${fmtDate(p.data)}</td><td>${tr?tr.nomeLup:'—'}</td><td>${p.nota}%</td>
+          <td><span class="badge ${p.resultadoQuiz==='Aprovado'?'green':p.resultadoQuiz==='Reciclagem recomendada'?'amber':'red'}">${p.resultadoQuiz}</span></td>
+          <td>${p.assinatura?'✓ Assinado':'—'}</td></tr>`;
+      }).join('')}</tbody></table>` : `<div class="empty-state"><p>Nenhum treinamento registrado para este colaborador.</p></div>`}
+    </div>`;
+}
+</script>
+<script>
+/* ======================================================================
+   MATRIZ DE TREINAMENTO
+====================================================================== */
+function renderMatriz(){
+  if(DB.matriz.length===0){
+    document.getElementById('matrizContent').innerHTML = `
+      <div class="card">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          <p>Nenhuma regra de matriz cadastrada ainda. Preencha a aba "MATRIZ TREINAMENTO" na sua planilha do Google Sheets (Função, LUP, Periodicidade) para que a conformidade apareça aqui.</p>
+        </div>
+      </div>`;
+    return;
+  }
+  const funcoes = [...new Set(DB.matriz.map(m=>m.funcao))];
+  const lupsUsed = [...new Set(DB.matriz.map(m=>m.lup))];
+
+  let rows = funcoes.map(f=>{
+    const cells = lupsUsed.map(lupCode=>{
+      const req = DB.matriz.find(m=>m.funcao===f && m.lup===lupCode);
+      if(!req) return `<td style="text-align:center;color:var(--line);">—</td>`;
+      const colabs = DB.colaboradores.filter(c=>c.cargo===f);
+      if(!colabs.length) return `<td style="text-align:center;"><span class="badge gray">n/a</span></td>`;
+      const trained = colabs.filter(c=> DB.participantes.some(p=>p.matricula===c.matricula && DB.treinamentos.find(t=>t.id===p.idTreinamento && t.codigoLup===lupCode)) ).length;
+      const pct = Math.round(trained/colabs.length*100);
+      const cls = pct===100?'green':(pct>0?'amber':'red');
+      return `<td style="text-align:center;"><span class="badge ${cls}">${trained}/${colabs.length}</span></td>`;
+    }).join('');
+    return `<tr><td><b>${f}</b></td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('matrizContent').innerHTML = `
+    <div class="card">
+      <div class="card-head"><h3>Conformidade por função × LUP obrigatória</h3><span class="muted">Verde = completo · Amarelo = pendente · Vermelho = crítico</span></div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Função</th>${lupsUsed.map(l=>`<th>${l}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-top:16px;">
+      ${funcoes.map(f=>{
+        const reqs = DB.matriz.filter(m=>m.funcao===f);
+        return `<div class="card">
+          <div class="card-head"><h3>${f}</h3><span class="muted">${reqs.length} treinamento(s) obrigatório(s)</span></div>
+          ${reqs.map(r=>{
+            const l = DB.lups.find(x=>x.codigo===r.lup);
+            return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
+              <span>${l?l.nome:r.lup}</span><span class="badge gray">${r.periodicidade}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ======================================================================
+   AUDITORIA
+====================================================================== */
+function renderAuditoria(){
+  // Colaboradores sem treinamento obrigatório
+  const semTreinamento = [];
+  DB.colaboradores.forEach(c=>{
+    const reqs = DB.matriz.filter(m=>m.funcao===c.cargo);
+    reqs.forEach(r=>{
+      const done = DB.participantes.some(p=>p.matricula===c.matricula && DB.treinamentos.find(t=>t.id===p.idTreinamento && t.codigoLup===r.lup));
+      if(!done) semTreinamento.push({colaborador:c, lup:r.lup});
+    });
+  });
+
+  // LUPs sem aplicação há mais de 90 dias (simulado: comparado a 2026-07-03)
+  const today = new Date('2026-07-03');
+  const lupsSemAplicacao = DB.lups.filter(l=>{
+    const usos = DB.treinamentos.filter(t=>t.codigoLup===l.codigo).sort((a,b)=>b.data.localeCompare(a.data));
+    if(!usos.length) return true;
+    const dias = Math.floor((today - new Date(usos[0].data))/(1000*60*60*24));
+    return dias > 90;
+  });
+
+  // Conformidade por área
+  const areaConf = {};
+  AREAS.forEach(a=>{
+    const colabs = DB.colaboradores.filter(c=>c.area===a);
+    if(!colabs.length) return;
+    const reqsSet = new Set();
+    colabs.forEach(c=> DB.matriz.filter(m=>m.funcao===c.cargo).forEach(r=>reqsSet.add(c.matricula+'|'+r.lup)));
+    let done=0;
+    reqsSet.forEach(key=>{
+      const [mat,lup] = key.split('|');
+      if(DB.participantes.some(p=>p.matricula===mat && DB.treinamentos.find(t=>t.id===p.idTreinamento && t.codigoLup===lup))) done++;
+    });
+    areaConf[a] = reqsSet.size ? Math.round(done/reqsSet.size*100) : 100;
+  });
+  const areaRanking = Object.entries(areaConf).sort((a,b)=>a[1]-b[1]);
+
+  document.getElementById('auditoriaContent').innerHTML = `
+    <div class="grid grid-3" style="margin-bottom:16px;">
+      ${kpiCard('Sem treinamento obrigatório', semTreinamento.length, 'users', 'colaboradores pendentes','down')}
+      ${kpiCard('LUPs sem aplicação 90+ dias', lupsSemAplicacao.length, 'calendar', 'requer reforço de aplicação','down')}
+      ${kpiCard('Menor conformidade', areaRanking[0]?areaRanking[0][0]:'—', 'trend', areaRanking[0]?areaRanking[0][1]+'% de cobertura':'sem dados ainda','down')}
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Colaboradores sem treinamento obrigatório</h3><span class="muted">${semTreinamento.length} pendência(s)</span></div>
+        <div style="max-height:340px;overflow-y:auto;">
+        ${semTreinamento.length? `<table><thead><tr><th>Colaborador</th><th>Função</th><th>LUP pendente</th></tr></thead>
+          <tbody>${semTreinamento.map(x=>`<tr><td>${x.colaborador.nome}</td><td>${x.colaborador.cargo}</td><td><span class="badge red">${x.lup}</span></td></tr>`).join('')}</tbody></table>`
+          : `<div class="empty-state"><p>${DB.colaboradores.length===0 ? 'Nenhum colaborador cadastrado ainda.' : 'Todos os colaboradores estão em dia.'}</p></div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Ranking de conformidade por área</h3></div>
+        ${areaRanking.length ? areaRanking.map(([a,pct])=>`
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;"><span>${a}</span><b>${pct}%</b></div>
+            <div style="height:8px;background:var(--line);border-radius:5px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};"></div></div>
+          </div>`).join('') : `<div class="empty-state"><p>Sem colaboradores cadastrados ainda para calcular conformidade por área.</p></div>`}
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><h3>LUPs sem aplicação há mais de 90 dias</h3></div>
+      ${lupsSemAplicacao.length? `<table><thead><tr><th>Código</th><th>Nome</th><th>Área</th><th>Última aplicação</th></tr></thead>
+        <tbody>${lupsSemAplicacao.map(l=>{
+          const usos = DB.treinamentos.filter(t=>t.codigoLup===l.codigo).sort((a,b)=>b.data.localeCompare(a.data));
+          return `<tr><td class="mono">${l.codigo}</td><td>${l.nome}</td><td>${l.area}</td><td>${usos.length?fmtDate(usos[0].data):'Nunca aplicada'}</td></tr>`;
+        }).join('')}</tbody></table>` : `<div class="empty-state"><p>${DB.lups.length===0 ? 'Nenhuma LUP cadastrada ainda.' : 'Todas as LUPs foram aplicadas nos últimos 90 dias.'}</p></div>`}
+    </div>`;
+}
+
+/* ======================================================================
+   RELATÓRIOS GERENCIAIS
+====================================================================== */
+function initSelects(){
+  const areaSel = document.getElementById('relArea');
+  const instSel = document.getElementById('relInstrutor');
+  if(areaSel && areaSel.options.length<=1) AREAS.forEach(a=>areaSel.insertAdjacentHTML('beforeend', `<option>${a}</option>`));
+  if(instSel && instSel.options.length<=1){
+    [...new Set(DB.treinamentos.map(t=>t.instrutor))].forEach(i=>instSel.insertAdjacentHTML('beforeend', `<option>${i}</option>`));
+  }
+}
+function filteredTreinamentos(){
+  const ini = document.getElementById('relDataIni')?.value;
+  const fim = document.getElementById('relDataFim')?.value;
+  const area = document.getElementById('relArea')?.value;
+  const inst = document.getElementById('relInstrutor')?.value;
+  return DB.treinamentos.filter(t=>
+    (!ini || t.data>=ini) && (!fim || t.data<=fim) && (!area || t.area===area) && (!inst || t.instrutor===inst)
+  );
+}
+function renderRelatorio(){
+  const list = filteredTreinamentos();
+  const totalHoras = (list.reduce((s,t)=>s+parseInt(t.duracao),0)/60).toFixed(1);
+  const totalPart = list.reduce((s,t)=>s+t.qtdParticipantes,0);
+  document.getElementById('relKpis').innerHTML = `
+    ${kpiCard('Treinamentos no período', list.length, 'calendar', 'de acordo com filtros','up')}
+    ${kpiCard('Horas treinadas', totalHoras+'h', 'clock', '','up')}
+    ${kpiCard('Participantes', totalPart, 'users', '','up')}
+    ${kpiCard('Áreas envolvidas', new Set(list.map(t=>t.area)).size, 'trend', '','up')}
+  `;
+  document.getElementById('relTable').innerHTML = list.length ? `
+    <table><thead><tr><th>ID</th><th>Data</th><th>Área</th><th>LUP</th><th>Instrutor</th><th>Turno</th><th>Motivo</th><th>Participantes</th></tr></thead>
+    <tbody>${list.map(t=>`<tr><td class="mono">${t.id}</td><td class="mono">${fmtDate(t.data)}</td><td>${t.area}</td><td>${t.nomeLup}</td><td>${t.instrutor}</td><td style="font-size:12px;">${t.turno.split(' (')[0]}</td><td><span class="badge gray">${t.motivo}</span></td><td>${t.qtdParticipantes}</td></tr>`).join('')}</tbody></table>
+  ` : `<div class="empty-state"><p>Nenhum treinamento no período selecionado.</p></div>`;
+}
+function printRelatorio(){
+  const list = filteredTreinamentos();
+  document.getElementById('printArea').innerHTML = `
+    <h2 style="font-family:sans-serif;">Central LUP — Relatório Gerencial</h2>
+    <p style="font-family:sans-serif;font-size:12px;">Gerado em 03/07/2026 · ${list.length} treinamentos</p>
+    <table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;font-family:sans-serif;font-size:11px;">
+      <tr><th>ID</th><th>Data</th><th>Área</th><th>LUP</th><th>Instrutor</th><th>Motivo</th><th>Participantes</th></tr>
+      ${list.map(t=>`<tr><td>${t.id}</td><td>${fmtDate(t.data)}</td><td>${t.area}</td><td>${t.nomeLup}</td><td>${t.instrutor}</td><td>${t.motivo}</td><td>${t.qtdParticipantes}</td></tr>`).join('')}
+    </table>`;
+  window.print();
+}
+function exportCSV(kind){
+  let rows = [], filename = 'export.csv';
+  if(kind==='relatorio'){ rows = filteredTreinamentos(); filename='relatorio_treinamentos.csv';
+    var header = ['ID','Data','Área','Processo','Turno','Instrutor','LUP','Motivo','Participantes'];
+    var lines = rows.map(t=>[t.id,t.data,t.area,t.processo,t.turno,t.instrutor,t.nomeLup,t.motivo,t.qtdParticipantes]);
+  } else if(kind==='matriz'){ filename='matriz_treinamento.csv';
+    var header = ['Função','LUP','Periodicidade','Obrigatório'];
+    var lines = DB.matriz.map(m=>[m.funcao,m.lup,m.periodicidade,m.obrigatorio?'Sim':'Não']);
+  } else if(kind==='auditoria'){ filename='auditoria_conformidade.csv';
+    var header = ['Matrícula','Nome','Função','Área','Status'];
+    var lines = DB.colaboradores.map(c=>{
+      const reqs = DB.matriz.filter(m=>m.funcao===c.cargo);
+      const pend = reqs.filter(r=> !DB.participantes.some(p=>p.matricula===c.matricula && DB.treinamentos.find(t=>t.id===p.idTreinamento && t.codigoLup===r.lup))).length;
+      return [c.matricula,c.nome,c.cargo,c.area, pend===0?'Conforme':`${pend} pendência(s)`];
+    });
+  }
+  const csv = [header.join(';'), ...lines.map(l=>l.join(';'))].join('\n');
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob); link.download = filename; link.click();
+  toast('Arquivo CSV exportado', 'success');
+}
+</script>
+
+<script>
+/* ======================================================================
+   USUÁRIOS — cadastro de acesso (Administrador, Supervisor, PS)
+====================================================================== */
+function renderUsuarios(){
+  const rows = DB.usuarios.slice().sort((a,b)=> a.nome.localeCompare(b.nome));
+  document.getElementById('usuariosTable').innerHTML = rows.length ? `
+    <table>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Cadastrado em</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map(u=>`
+        <tr>
+          <td>${u.nome}</td>
+          <td class="mono">${u.email}</td>
+          <td><span class="badge ${u.perfil==='ADMINISTRADOR'?'red':u.perfil==='SUPERVISOR'?'amber':'gray'}">${ROLE_LABELS[u.perfil]||u.perfil}</span></td>
+          <td class="mono">${fmtDate(u.dataCadastro)}</td>
+          <td><span class="badge green">${u.status}</span></td>
+          <td>${u.email.toLowerCase()===SESSION.email.toLowerCase() ? '' : `<button class="btn-sm btn-ghost" onclick="removeUsuario('${u.email}')">Remover</button>`}</td>
+        </tr>`).join('')}</tbody>
+    </table>` : `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg><p>Nenhum usuário cadastrado ainda.</p></div>`;
+}
+function openCadastrarUsuario(){
+  openModal(`
+    <div class="modal-head"><h3>Cadastrar usuário</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <label class="field-label">Nome completo</label>
+      <input class="field-input" id="novoUsuarioNome" placeholder="Ex: Ana Beatriz Souza" style="margin-bottom:14px;">
+      <label class="field-label">E-mail corporativo</label>
+      <input class="field-input" id="novoUsuarioEmail" placeholder="Ex: ana.souza@shopee.com" style="margin-bottom:14px;">
+      <label class="field-label">Perfil de acesso</label>
+      <div class="role-grid" id="novoUsuarioRoleGrid" style="grid-template-columns:1fr 1fr 1fr;">
+        <button type="button" class="role-opt active" data-role="ADMINISTRADOR"><b>Administrador</b><span>Controle total</span></button>
+        <button type="button" class="role-opt" data-role="SUPERVISOR"><b>Supervisor</b><span>Aplica e relatoriza</span></button>
+        <button type="button" class="role-opt" data-role="PS"><b>PS</b><span>Registra treinamentos</span></button>
+      </div>
+      <p style="font-size:11.5px;color:var(--mist);margin-top:12px;">A pessoa cadastrada recebe um e-mail automático informando o cadastro e as funcionalidades liberadas para o perfil escolhido.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-orange" onclick="saveUsuario()">Cadastrar e enviar e-mail</button>
+    </div>
+  `);
+  document.querySelectorAll('#novoUsuarioRoleGrid .role-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#novoUsuarioRoleGrid .role-opt').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+function saveUsuario(){
+  const nome = document.getElementById('novoUsuarioNome').value.trim();
+  const email = document.getElementById('novoUsuarioEmail').value.trim();
+  const roleBtn = document.querySelector('#novoUsuarioRoleGrid .role-opt.active');
+  const perfil = roleBtn ? roleBtn.dataset.role : 'PS';
+  if(!nome || !email){ toast('Informe nome completo e e-mail corporativo', 'error'); return; }
+  if(DB.usuarios.find(u=>u.email.toLowerCase()===email.toLowerCase())){ toast('Já existe um usuário cadastrado com este e-mail', 'error'); return; }
+  const novoUsuario = { email, nome, perfil, dataCadastro:'2026-07-03', status:'Ativo' };
+  DB.usuarios.push(novoUsuario);
+  syncToSheets('usuarios', novoUsuario); // o backend cadastra e envia o e-mail de boas-vindas
+  closeModal();
+  renderUsuarios();
+  toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} — e-mail de boas-vindas enviado`, 'success');
+}
+function removeUsuario(email){
+  DB.usuarios = DB.usuarios.filter(u=>u.email.toLowerCase()!==email.toLowerCase());
+  renderUsuarios();
+  toast('Usuário removido do acesso local. Remova também a linha na planilha USUARIOS.', 'success');
+}
+</script>
+
+<script>
+/* ======================================================================
+   INTEGRAÇÃO GOOGLE SHEETS (Apps Script Web App)
+   Padrão CORS: POST com Content-Type text/plain (bypass preflight),
+   conforme utilizado nos demais dashboards da operação BRFPE1.
+   A URL do backend fica embutida em GOOGLE_SCRIPT_URL, no topo do
+   arquivo — todo usuário que abrir esta página já sincroniza com a
+   mesma planilha, sem nenhuma configuração manual.
+====================================================================== */
+function syncToSheets(sheet, record){
+  if(!CONFIG.scriptUrl){ return; } // sem URL definida: mantém apenas em memória
+  fetch(CONFIG.scriptUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify({action:'append', sheet, record})
+  }).catch(()=> console.warn('Falha ao sincronizar com Google Sheets — dado mantido localmente.'));
+}
+
+async function fetchSheet(action){
+  if(!CONFIG.scriptUrl) return null;
+  try{
+    const res = await fetch(`${CONFIG.scriptUrl}?action=${action}`, {method:'GET'});
+    if(!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) ? data : null;
+  }catch(err){
+    console.warn(`Falha ao carregar "${action}" do Google Sheets`, err);
+    return null;
+  }
+}
+
+async function loadFromSheets(){
+  const note = document.getElementById('loginDemoNote');
+  if(!CONFIG.scriptUrl){
+    if(note) note.textContent = 'Nenhuma planilha conectada — sistema em modo local.';
+    dataLoaded = true;
+    return;
+  }
+  const [colaboradores, lups, matriz, usuarios] = await Promise.all([
+    fetchSheet('colaboradores'), fetchSheet('lups'), fetchSheet('matriz'), fetchSheet('usuarios')
+  ]);
+  if(colaboradores) DB.colaboradores = colaboradores;
+  if(lups) DB.lups = lups.map(l=>({...l, correto: safeParseArr(l.correto), evitar: safeParseArr(l.evitar), passos: safeParseArr(l.passos), quiz: safeParseArr(l.quiz)}));
+  if(matriz) DB.matriz = matriz;
+  if(usuarios) DB.usuarios = usuarios;
+
+  document.getElementById('statTreinLogin').textContent = DB.treinamentos.length;
+  document.getElementById('statLupsLogin').textContent = DB.lups.length;
+  document.getElementById('statColabLogin').textContent = DB.colaboradores.length;
+  if(note) note.textContent = (colaboradores||lups||matriz||usuarios) ? 'Conectado à planilha do Google Sheets.' : 'Planilha vazia ou indisponível — cadastre por aqui mesmo.';
+  dataLoaded = true;
+}
+function safeParseArr(v){
+  if(Array.isArray(v)) return v;
+  if(typeof v === 'string'){ try{ const p = JSON.parse(v); return Array.isArray(p)?p:[]; }catch(e){ return []; } }
+  return [];
+}
+
+/* ======================================================================
+   INIT
+====================================================================== */
+document.getElementById('statTreinLogin').textContent = DB.treinamentos.length;
+document.getElementById('statLupsLogin').textContent = DB.lups.length;
+document.getElementById('statColabLogin').textContent = DB.colaboradores.length;
+const loadPromise = loadFromSheets();
+</script>
+</body>
+</html>
