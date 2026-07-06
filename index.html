@@ -621,7 +621,7 @@ tr:hover td{background:var(--orange-light);}
    usuários que abrirem esta página ficam conectados à planilha real,
    sem nenhuma configuração manual por navegador/usuário.
 ====================================================================== */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTVz47oZ4maohpd-pas3lAamN8kdrisTKndVUPQl2GII7d59FFl65Kd9uLpWQEUcEQ1A/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9LxC1O9ff3TC2OzFXk89mAGFi7f99xEoo9CuslqYn7Jfr4RvVowdg1bNdLVxuIGPiBQ/exec';
 
 const CONFIG = {
   scriptUrl: GOOGLE_SCRIPT_URL || localStorage.getItem('centrallup_scripturl') || '',
@@ -690,6 +690,18 @@ const ROLE_VIEWS = {
   SUPERVISOR:    ['dashboard','aplicar','biblioteca','colaborador','matriz','auditoria','relatorios'],
   PS:            ['dashboard','aplicar','biblioteca','colaborador']
 };
+/* Aceita variações digitadas à mão na planilha (ex: "Administrador",
+   "administrador ", "Supervisor") e sempre devolve a chave interna
+   exata (ADMINISTRADOR/SUPERVISOR/PS) ou null se não reconhecer. */
+function normalizeRole(v){
+  if(!v) return null;
+  const s = v.toString().trim().toUpperCase();
+  if(ROLE_VIEWS[s]) return s;
+  if(s.startsWith('ADMIN')) return 'ADMINISTRADOR';
+  if(s.startsWith('SUPERV')) return 'SUPERVISOR';
+  if(s === 'PS' || s.startsWith('PS ') || s.startsWith('PS-')) return 'PS';
+  return null;
+}
 
 async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
@@ -708,7 +720,13 @@ async function doLogin(){
   const user = DB.usuarios.find(u=>u.email.toLowerCase()===email.toLowerCase());
 
   if(user){
-    SESSION.role = user.perfil;
+    const normalized = normalizeRole(user.perfil);
+    if(!normalized){
+      errEl.textContent = `O perfil cadastrado ("${user.perfil}") não é reconhecido. Peça a um Administrador para corrigir a coluna "perfil" na aba USUARIOS da planilha para ADMINISTRADOR, SUPERVISOR ou PS.`;
+      errEl.style.display = 'block';
+      return;
+    }
+    SESSION.role = normalized;
     SESSION.email = user.email;
     SESSION.nome = user.nome;
   } else if(DB.usuarios.length === 0){
@@ -733,13 +751,14 @@ async function doLogin(){
   }
 
   const role = SESSION.role;
+  const allowedViews = ROLE_VIEWS[role] || [];
   document.getElementById('sideAvatar').textContent = initials(SESSION.nome);
   document.getElementById('sideUserName').textContent = SESSION.nome;
-  document.getElementById('sideUserRole').textContent = ROLE_LABELS[role];
+  document.getElementById('sideUserRole').textContent = ROLE_LABELS[role] || role;
 
   document.querySelectorAll('.side-link').forEach(link=>{
     const v = link.dataset.view;
-    link.style.display = ROLE_VIEWS[role].includes(v) ? 'flex' : 'none';
+    link.style.display = allowedViews.includes(v) ? 'flex' : 'none';
   });
 
   document.getElementById('loginScreen').style.display = 'none';
@@ -757,7 +776,7 @@ function doLogout(){
 }
 
 function nav(view){
-  if(!ROLE_VIEWS[SESSION.role].includes(view)){ toast('Seu perfil não tem acesso a este módulo', 'error'); return; }
+  if(!(ROLE_VIEWS[SESSION.role]||[]).includes(view)){ toast('Seu perfil não tem acesso a este módulo', 'error'); return; }
   currentView = view;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
@@ -2060,7 +2079,7 @@ async function loadFromSheets(){
   if(colaboradores) DB.colaboradores = colaboradores;
   if(lups) DB.lups = lups.map(l=>({...l, correto: safeParseArr(l.correto), evitar: safeParseArr(l.evitar), passos: safeParseArr(l.passos), quiz: safeParseArr(l.quiz)}));
   if(matriz) DB.matriz = matriz;
-  if(usuarios) DB.usuarios = usuarios;
+  if(usuarios) DB.usuarios = usuarios.map(u => ({...u, perfil: normalizeRole(u.perfil) || u.perfil}));
 
   document.getElementById('statTreinLogin').textContent = DB.treinamentos.length;
   document.getElementById('statLupsLogin').textContent = DB.lups.length;
