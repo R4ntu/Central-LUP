@@ -621,7 +621,7 @@ tr:hover td{background:var(--orange-light);}
    usuários que abrirem esta página ficam conectados à planilha real,
    sem nenhuma configuração manual por navegador/usuário.
 ====================================================================== */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG_LkV0EHnw6u4IfrvuX410F8Nvm73L5x8MWq9Xb53b8WIdGuE4IfDyk6CxxQxe_Q1Zw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDEF6gY_kY6gaqD4FazxD4X_btbMgzGxhJM-PD0ORUBigze38ifn-eRlU3H85wngX2Ew/exec';
 
 const CONFIG = {
   scriptUrl: GOOGLE_SCRIPT_URL || localStorage.getItem('centrallup_scripturl') || '',
@@ -993,10 +993,11 @@ function lupIsPdf(l){
 function lupRenderContent(l){
   const src = l.arquivoDataUrl || l.linkArquivo;
   if(src){
+    const containerId = 'lupfile-' + (l.codigo||'x').replace(/[^a-zA-Z0-9]/g,'') + '-' + Math.random().toString(36).slice(2,7);
     if(lupIsPdf(l)){
-      return `<iframe src="${src}" style="width:100%;height:72vh;border:1px solid var(--line);border-radius:12px;background:#fff;display:block;" title="${escapeHtml(l.nome)}"></iframe>`;
+      return `<div id="${containerId}"><iframe src="${src}" style="width:100%;height:72vh;border:1px solid var(--line);border-radius:12px;background:#fff;display:block;" title="${escapeHtml(l.nome)}"></iframe></div>`;
     }
-    return `<img src="${src}" alt="${escapeHtml(l.nome)}" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;">`;
+    return `<div id="${containerId}"><img src="${src}" alt="${escapeHtml(l.nome)}" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;" onerror="lupImgLoadError('${containerId}','${escapeHtml(l.nome).replace(/'/g,"&#39;")}')"></div>`;
   }
   // Sem arquivo e sem conteúdo estruturado: isso normalmente significa que o
   // upload para o Google Drive falhou (permissão do Apps Script pendente).
@@ -1009,6 +1010,14 @@ function lupRenderContent(l){
     </div>`;
   }
   return lupFullRender(l);
+}
+function lupImgLoadError(containerId, nome){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = `<div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+    <p>Não foi possível carregar o arquivo de "${nome}" a partir do Google Drive. O link pode ter expirado, o compartilhamento pode ter mudado, ou o Drive ainda não processou o arquivo. Tente recarregar a página em alguns segundos ou recadastrar o arquivo.</p>
+  </div>`;
 }
 
 function lupThumbSVG(l){
