@@ -621,7 +621,7 @@ tr:hover td{background:var(--orange-light);}
    usuários que abrirem esta página ficam conectados à planilha real,
    sem nenhuma configuração manual por navegador/usuário.
 ====================================================================== */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTVz47oZ4maohpd-pas3lAamN8kdrisTKndVUPQl2GII7d59FFl65Kd9uLpWQEUcEQ1A/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG_LkV0EHnw6u4IfrvuX410F8Nvm73L5x8MWq9Xb53b8WIdGuE4IfDyk6CxxQxe_Q1Zw/exec';
 
 const CONFIG = {
   scriptUrl: GOOGLE_SCRIPT_URL || localStorage.getItem('centrallup_scripturl') || '',
@@ -992,11 +992,23 @@ function lupIsPdf(l){
    (lupFullRender) quando a LUP não tem nenhum arquivo associado. */
 function lupRenderContent(l){
   const src = l.arquivoDataUrl || l.linkArquivo;
-  if(!src) return lupFullRender(l);
-  if(lupIsPdf(l)){
-    return `<iframe src="${src}" style="width:100%;height:72vh;border:1px solid var(--line);border-radius:12px;background:#fff;display:block;" title="${escapeHtml(l.nome)}"></iframe>`;
+  if(src){
+    if(lupIsPdf(l)){
+      return `<iframe src="${src}" style="width:100%;height:72vh;border:1px solid var(--line);border-radius:12px;background:#fff;display:block;" title="${escapeHtml(l.nome)}"></iframe>`;
+    }
+    return `<img src="${src}" alt="${escapeHtml(l.nome)}" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;">`;
   }
-  return `<img src="${src}" alt="${escapeHtml(l.nome)}" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block;">`;
+  // Sem arquivo e sem conteúdo estruturado: isso normalmente significa que o
+  // upload para o Google Drive falhou (permissão do Apps Script pendente).
+  // Mostra um aviso claro em vez do template genérico vazio.
+  const semConteudo = !l.objetivo && !l.risco && (!l.correto || l.correto.length===0) && (!l.passos || l.passos.length===0);
+  if(semConteudo){
+    return `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <p>O arquivo original desta LUP não está disponível — o upload para o Google Drive provavelmente não foi concluído (permissão do Apps Script pendente, veja em Configurações do Drive no Code.gs).<br>Reenvie o arquivo cadastrando a LUP novamente, ou verifique a autorização do Drive no Apps Script.</p>
+    </div>`;
+  }
+  return lupFullRender(l);
 }
 
 function lupThumbSVG(l){
@@ -1159,6 +1171,7 @@ async function saveNewLup(){
     arquivoDataUrl:'', linkArquivo:'', arquivoTipo:'', arquivoNome:''
   };
 
+  let driveUploadError = null;
   if(newLupFileData){
     // Mantém o arquivo fiel na sessão atual imediatamente.
     novaLup.arquivoDataUrl = newLupFileData.dataUrl;
@@ -1175,9 +1188,13 @@ async function saveNewLup(){
         });
         const data = await res.json();
         if(data && data.url) novaLup.linkArquivo = data.url;
+        else driveUploadError = (data && data.error) || 'resposta inesperada do Apps Script';
       }catch(err){
+        driveUploadError = String(err);
         console.warn('Falha ao enviar arquivo ao Google Drive — mantido apenas nesta sessão.', err);
       }
+    } else {
+      driveUploadError = 'nenhuma planilha conectada (GOOGLE_SCRIPT_URL vazio)';
     }
   }
 
@@ -1187,7 +1204,9 @@ async function saveNewLup(){
   // Sincroniza metadados (sem o base64 bruto — só o link do Drive) com a planilha.
   const { arquivoDataUrl, ...syncRecord } = novaLup;
   const syncResult = await syncToSheets('lups', syncRecord);
-  if(syncResult.ok){
+  if(driveUploadError){
+    toast(`LUP cadastrada e visível agora, mas o arquivo NÃO foi salvo no Google Drive (${driveUploadError}) — ele vai sumir na próxima vez que a página for recarregada até isso ser corrigido.`, 'error');
+  } else if(syncResult.ok){
     toast(newLupFileData ? 'LUP cadastrada com o arquivo enviado e salva na planilha' : 'LUP cadastrada e salva na planilha', 'success');
   } else if(syncResult.reason==='no-url'){
     toast('LUP cadastrada apenas nesta sessão — nenhuma planilha conectada', 'error');
@@ -2015,7 +2034,12 @@ async function saveUsuario(){
   DB.usuarios.push(novoUsuario);
   closeModal();
   renderUsuarios();
-  toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} e salvo na planilha — e-mail de boas-vindas enviado`, 'success');
+  const emailError = result.data && result.data.emailError;
+  if(emailError){
+    toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} e salvo na planilha — mas o e-mail falhou: ${emailError}`, 'error');
+  } else {
+    toast(`${nome} cadastrado(a) como ${ROLE_LABELS[perfil]} e salvo na planilha — e-mail de boas-vindas enviado`, 'success');
+  }
 }
 function removeUsuario(email){
   DB.usuarios = DB.usuarios.filter(u=>u.email.toLowerCase()!==email.toLowerCase());
