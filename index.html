@@ -621,7 +621,7 @@ tr:hover td{background:var(--orange-light);}
    usuários que abrirem esta página ficam conectados à planilha real,
    sem nenhuma configuração manual por navegador/usuário.
 ====================================================================== */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDEF6gY_kY6gaqD4FazxD4X_btbMgzGxhJM-PD0ORUBigze38ifn-eRlU3H85wngX2Ew/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdeEoQAea5m5XWwGPmIuYU1Rlup906M1S21cUVvdNBOL1u_opPtkpav3lo74U04mFPyA/exec';
 
 const CONFIG = {
   scriptUrl: GOOGLE_SCRIPT_URL || localStorage.getItem('centrallup_scripturl') || '',
@@ -983,7 +983,13 @@ function setLupFilter(a){ lupFilterArea=a; renderBiblioteca(); }
 function lupHasUpload(l){ return !!(l.arquivoDataUrl || l.linkArquivo); }
 function lupIsPdf(l){
   if(l.arquivoTipo) return l.arquivoTipo === 'application/pdf';
-  if(l.linkArquivo) return /\.pdf(\?|$)/i.test(l.linkArquivo);
+  if(l.linkArquivo){
+    // Reconhece os dois formatos de URL que a própria Central LUP gera no Drive:
+    // PDF -> .../file/d/{id}/preview   |   Imagem -> .../thumbnail?id=...
+    if(/\/file\/d\/[^/]+\/preview/i.test(l.linkArquivo)) return true;
+    if(/drive\.google\.com\/thumbnail\?/i.test(l.linkArquivo)) return false;
+    if(/\.pdf(\?|$)/i.test(l.linkArquivo)) return true;
+  }
   if(l.arquivoNome) return /\.pdf$/i.test(l.arquivoNome);
   return false;
 }
